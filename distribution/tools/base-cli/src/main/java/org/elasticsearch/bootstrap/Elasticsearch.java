@@ -25,6 +25,7 @@ import joptsimple.OptionSpecBuilder;
 import joptsimple.util.PathConverter;
 import org.elasticsearch.Build;
 import org.elasticsearch.Version;
+import org.elasticsearch.cli.Command;
 import org.elasticsearch.cli.EnvironmentAwareCommand;
 import org.elasticsearch.cli.ExitCodes;
 import org.elasticsearch.cli.Terminal;
@@ -84,7 +85,7 @@ class Elasticsearch extends EnvironmentAwareCommand {
         final Elasticsearch elasticsearch = new Elasticsearch();
         int status = main(args, elasticsearch, Terminal.DEFAULT);
         if (status != ExitCodes.OK) {
-            exit(status);
+            Command.exit(status);
         }
     }
 

@@ -271,7 +271,7 @@ final class Bootstrap {
     }
 
     /**
-     * This method is invoked by {@link Elasticsearch#main(String[])} to startup elasticsearch.
+     * This method is invoked to startup elasticsearch.
      */
     static void init(
             final boolean foreground,

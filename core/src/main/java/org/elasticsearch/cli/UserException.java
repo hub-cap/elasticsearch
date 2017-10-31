@@ -20,7 +20,7 @@
 package org.elasticsearch.cli;
 
 /**
- * An exception representing a user fixable problem in {@link Command} usage.
+ * An exception representing a user fixable problem in CLI usage.
  */
 public class UserException extends Exception {
 

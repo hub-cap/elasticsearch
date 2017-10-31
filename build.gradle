@@ -234,6 +234,8 @@ subprojects {
     "org.elasticsearch.distribution.tar:elasticsearch:${version}": ':distribution:tar',
     "org.elasticsearch.distribution.rpm:elasticsearch:${version}": ':distribution:rpm',
     "org.elasticsearch.distribution.deb:elasticsearch:${version}": ':distribution:deb',
+    "org.elasticsearch.distribution.tools:base-cli:${version}": ':distribution:tools:base-cli',
+    "org.elasticsearch.distribution.tools:translog-cli:${version}": ':distribution:tools:translog-cli',
     "org.elasticsearch.test:logger-usage:${version}": ':test:logger-usage',
     // for transport client
     "org.elasticsearch.plugin:transport-netty4-client:${version}": ':modules:transport-netty4',

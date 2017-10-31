@@ -166,6 +166,9 @@ configure(distributions) {
       // delay add tools using closures, since they have not yet been configured, so no jar task exists yet
       from { project(':distribution:tools:java-version-checker').jar }
       from { project(':distribution:tools:plugin-cli').jar }
+      from { project(':distribution:tools:base-cli').jar }
+      from { project(':distribution:tools:keystore-cli').jar }
+      from { project(':distribution:tools:translog-cli').jar }
     }
 
     modulesFiles = copySpec {

@@ -20,16 +20,18 @@
 apply plugin: 'elasticsearch.build'
 
 dependencies {
-  provided "org.elasticsearch:elasticsearch:${version}"
-  compile "org.elasticsearch.distribution.tools:base-cli:${version}"
-  testCompile "org.elasticsearch.test:framework:${version}"
-  testCompile 'com.google.jimfs:jimfs:1.1'
-  testCompile 'com.google.guava:guava:18.0'
+    provided "org.elasticsearch:elasticsearch:${version}"
+    compile "org.elasticsearch.distribution.tools:base-cli:${version}"
+//    compile 'net.sf.jopt-simple:jopt-simple:5.0.2'
+    testCompile "org.elasticsearch.test:framework:${version}"
+    testCompile "com.carrotsearch.randomizedtesting:randomizedtesting-runner:${versions.randomizedrunner}"
+    testCompile "junit:junit:${versions.junit}"
+    testCompile "org.hamcrest:hamcrest-all:${versions.hamcrest}"
 }
 
-test {
-  // TODO: find a way to add permissions for the tests in this module
-  systemProperty 'tests.security.manager', 'false'
-}
+archivesBaseName = 'elasticsearch-translog-cli'
+
+compileJava.options.compilerArgs << "-Xlint:-cast,-deprecation,-rawtypes,-try,-unchecked"
+compileTestJava.options.compilerArgs << "-Xlint:-cast,-deprecation,-rawtypes,-try,-unchecked"
 
 dependencyLicenses.enabled = false // need to chat about this
