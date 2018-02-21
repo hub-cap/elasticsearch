@@ -138,6 +138,13 @@ class VersionCollection {
                             break
                         }
                     }
+                    // If the stagedMinor is not null but the nextBugfix is, then this means a new staged major release just happened
+                    // The rules for releasing staged minors assume a minor-1, which is not the case for new staged major releases.
+                    // Therefore we should just swap these so there is no staged minor but is a next bugfix, since that is a valid case.
+                    if (nextBugfixSnapshot == null && stagedMinorSnapshot != null) {
+                        nextBugfixSnapshot = stagedMinorSnapshot
+                        stagedMinorSnapshot = null
+                    }
                     // caveat 0 - now dip back 2 versions to get the last supported snapshot version of the line
                     Version highestMinor = getHighestPreviousMinor(currentVersion.major - 1)
                     maintenanceBugfixSnapshot = replaceAsSnapshot(highestMinor)

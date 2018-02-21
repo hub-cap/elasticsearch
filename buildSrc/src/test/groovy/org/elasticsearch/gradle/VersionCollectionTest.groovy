@@ -223,4 +223,64 @@ class VersionCollectionTest extends GroovyTestCase {
     // ensure none of the 2.x snapshots appear here, as this is the floor of bwc for wire compat
     assertEquals(vc.snapshotsWireCompatible.size(), 0)
   }
+
+//  void testStageAndReleaseMinor() {
+//    List localVersions = allVersions.clone()
+//    VersionCollection vc = new VersionCollection(localVersions)
+//
+//    println("- release 6.2.0 as it is staged")
+//    vc.releaseStagedMinor()
+//    localVersions.add(formatVersion("6.2.1"))
+//
+//    println("\n- Stage 6.3.0 which is currently on 6.x")
+//    vc = new VersionCollection(localVersions)
+//    vc.stageMinor()
+//    localVersions.add(formatVersion("6.4.0"))
+//
+//    println("\n- Release 6.2.1")
+//    vc = new VersionCollection(localVersions)
+//    vc.releaseNextBugfix()
+//    localVersions.add(formatVersion("6.2.2"))
+//
+//    println("\n- Stage 7.0.0")
+//    vc = new VersionCollection(localVersions)
+//    vc.stageMajor()
+//
+//    localVersions.add(formatVersion("8.0.0_alpha1"))
+//    localVersions.add(formatVersion("7.1.0"))
+//    localVersions.add(formatVersion("7.0.0_beta1"))
+//    localVersions.remove(formatVersion("6.4.0")) // remove the last .x from the previous major
+//
+//    println("\n- Release the maint bugfix 6.3 branch")
+//    vc = new VersionCollection(localVersions)
+//    vc.releaseMaintenanceBugfix()
+//    localVersions.add(formatVersion("6.3.2"))
+//
+//    println("\n- Release a 7.0.0 Beta")
+//    vc = new VersionCollection(localVersions)
+//    vc.releaseBeta()
+//    localVersions.add(formatVersion("7.0.0_beta2"))
+//
+//    println("\n- Release a 7.0.0 RC")
+//    vc = new VersionCollection(localVersions)
+//    vc.releaseRC()
+//    localVersions.add(formatVersion("7.0.0_rc1"))
+//
+//    println("\n- Release another 7.0.0 RC")
+//    vc = new VersionCollection(localVersions)
+//    vc.releaseRC()
+//    localVersions.add(formatVersion("7.0.0_rc2"))
+//
+//    println("\n- Release an 8.0.0 alpha")
+//    vc = new VersionCollection(localVersions)
+//    vc.releaseAlpha()
+//    localVersions.add(formatVersion("8.0.0_alpha2"))
+//
+//    println("\n - Release 7.0.0")
+//    vc = new VersionCollection(localVersions)
+//    vc.releaseMajor()
+//    localVersions.add(formatVersion("7.0.0"))
+//    localVersions.add(formatVersion("7.0.1"))
+//
+//  }
 }

@@ -20,6 +20,7 @@
 
 import org.apache.tools.ant.taskdefs.condition.Os
 import org.elasticsearch.gradle.BuildPlugin
+import org.elasticsearch.gradle.UpdateVersionTask
 import org.elasticsearch.gradle.Version
 import org.elasticsearch.gradle.VersionCollection
 import org.elasticsearch.gradle.VersionProperties
@@ -455,4 +456,10 @@ gradle.projectsEvaluated {
       }
     }
   }
+}
+
+
+task stageMajor(type: UpdateVersionTask) {
+  bwcVersions = versions
+  stageMajor()
 }
