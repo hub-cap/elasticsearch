@@ -25,10 +25,14 @@ import org.elasticsearch.action.ActionListener;
 import org.elasticsearch.action.LatchedActionListener;
 import org.elasticsearch.action.admin.cluster.repositories.get.GetRepositoriesRequest;
 import org.elasticsearch.action.admin.cluster.repositories.get.GetRepositoriesResponse;
+import org.elasticsearch.action.admin.cluster.repositories.put.PutRepositoryRequest;
+import org.elasticsearch.action.admin.cluster.repositories.put.PutRepositoryResponse;
 import org.elasticsearch.client.ESRestHighLevelClientTestCase;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.cluster.metadata.RepositoryMetaData;
+import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.unit.TimeValue;
+import org.elasticsearch.common.xcontent.XContentType;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -59,6 +63,51 @@ import static org.hamcrest.Matchers.equalTo;
 public class SnapshotClientDocumentationIT extends ESRestHighLevelClientTestCase {
 
     private static final String testRepository = "test_repository";
+
+    public void testSnapshotPutRepository() throws IOException {
+        RestHighLevelClient client = highLevelClient();
+
+        // tag::put-repository-request
+        PutRepositoryRequest request = new PutRepositoryRequest();
+        // end::put-repository-request
+
+        // tag::put-repository-create-settings
+        Settings settings = Settings.builder()
+            .put("location", ".")
+            .put("compress", true)
+            .build(); // <1>
+        // end::put-repository-create-settings
+
+        // tag::put-repository-request-name
+        request.name(testRepository); // <1>
+        // end::put-repository-request-name
+        // tag::put-repository-request-type
+        request.type("fs"); // <1>
+        // end::put-repository-request-type
+        // tag::put-repository-request-settings
+        request.settings(settings); // <1>
+        // end::put-repository-request-settings
+        // tag::put-repository-request-masterTimeout
+        request.masterNodeTimeout(TimeValue.timeValueMinutes(1)); // <1>
+        request.masterNodeTimeout("1m"); // <2>
+        // end::put-repository-request-masterTimeout
+        // tag::put-repository-request-timeout
+        request.timeout(TimeValue.timeValueMinutes(1)); // <1>
+        request.timeout("1m"); // <2>
+        // end::put-repository-request-timeout
+        // tag::put-repository-request-verify
+        request.verify(true); // <1>
+        // end::put-repository-request-verify
+
+        // tag::put-repository-execute
+        PutRepositoryResponse response = client.snapshot().putRepository(request);
+        // end::get-repository-execute
+
+        // tag::put-repository-response
+        boolean acknowledged = response.isAcknowledged();
+        // end::put-repository-response
+        assertTrue(acknowledged);
+    }
 
     public void testSnapshotGetRepository() throws IOException {
         RestHighLevelClient client = highLevelClient();
@@ -126,10 +175,9 @@ public class SnapshotClientDocumentationIT extends ESRestHighLevelClientTestCase
     }
 
     private final void createTestRepositories() throws IOException {
-        RestHighLevelClient client = highLevelClient();
-        String repositorySettings = "{\"type\":\"fs\", \"settings\":{\"location\": \".\"}}";
-        highLevelClient().getLowLevelClient().performRequest("put", "_snapshot/" + testRepository, Collections.emptyMap(),
-            new StringEntity(repositorySettings, ContentType.APPLICATION_JSON));
-
+        PutRepositoryRequest request = new PutRepositoryRequest(testRepository);
+        request.type("fs");
+        request.settings("{\"location\": \".\"}", XContentType.JSON);
+        assertTrue(highLevelClient().snapshot().putRepository(request).isAcknowledged());
     }
 }
