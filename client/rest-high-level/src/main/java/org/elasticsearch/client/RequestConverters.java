@@ -30,6 +30,7 @@ import org.apache.http.entity.ContentType;
 import org.apache.lucene.util.BytesRef;
 import org.elasticsearch.action.DocWriteRequest;
 import org.elasticsearch.action.admin.cluster.repositories.get.GetRepositoriesRequest;
+import org.elasticsearch.action.admin.cluster.repositories.put.PutRepositoryRequest;
 import org.elasticsearch.action.admin.cluster.settings.ClusterUpdateSettingsRequest;
 import org.elasticsearch.action.admin.indices.alias.IndicesAliasesRequest;
 import org.elasticsearch.action.admin.indices.alias.get.GetAliasesRequest;
@@ -652,6 +653,18 @@ final class RequestConverters {
         parameters.withMasterTimeout(getRepositoriesRequest.masterNodeTimeout());
         parameters.withLocal(getRepositoriesRequest.local());
         parameters.withRepository(getRepositoriesRequest.repositories());
+        return request;
+    }
+
+    static Request putRepositories(PutRepositoryRequest putRepositoryRequest) throws IOException {
+        String endpoint = new EndpointBuilder().addPathPart("_snapshot").addPathPart(putRepositoryRequest.name()).build();
+        Request request = new Request(HttpPut.METHOD_NAME, endpoint);
+
+        Params parameters = new Params(request);
+        parameters.withMasterTimeout(putRepositoryRequest.masterNodeTimeout());
+        parameters.withTimeout(putRepositoryRequest.timeout());
+
+        request.setEntity(createEntity(putRepositoryRequest, REQUEST_BODY_CONTENT_TYPE));
         return request;
     }
 
