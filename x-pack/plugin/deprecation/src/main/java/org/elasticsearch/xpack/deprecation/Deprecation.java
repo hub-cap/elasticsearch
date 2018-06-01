@@ -38,8 +38,6 @@ public class Deprecation extends Plugin implements ActionPlugin {
                                              IndexScopedSettings indexScopedSettings, SettingsFilter settingsFilter,
                                              IndexNameExpressionResolver indexNameExpressionResolver,
                                              Supplier<DiscoveryNodes> nodesInCluster) {
-
-
         return Collections.singletonList(new RestDeprecationInfoAction(settings, restController));
     }
 }

@@ -21,8 +21,8 @@ public class MonitoringPluginClientTests extends ESTestCase {
                 .build();
 
         Monitoring plugin = new Monitoring(settings);
-        assertThat(plugin.isEnabled(), is(true));
-        assertThat(plugin.isTransportClient(), is(true));
+        assertThat(plugin.enabled(), is(true));
+        assertThat(plugin.transportClientMode(), is(true));
     }
 
     public void testModulesWithNodeSettings() throws Exception {
@@ -32,7 +32,7 @@ public class MonitoringPluginClientTests extends ESTestCase {
                 .put(Client.CLIENT_TYPE_SETTING_S.getKey(), "node")
                 .build();
         Monitoring plugin = new Monitoring(settings);
-        assertThat(plugin.isEnabled(), is(true));
-        assertThat(plugin.isTransportClient(), is(false));
+        assertThat(plugin.enabled(), is(true));
+        assertThat(plugin.transportClientMode(), is(false));
     }
 }

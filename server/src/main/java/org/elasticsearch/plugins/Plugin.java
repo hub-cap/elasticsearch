@@ -22,6 +22,7 @@ package org.elasticsearch.plugins;
 import org.elasticsearch.action.ActionModule;
 import org.elasticsearch.bootstrap.BootstrapCheck;
 import org.elasticsearch.client.Client;
+import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.cluster.ClusterModule;
 import org.elasticsearch.cluster.metadata.IndexMetaData;
 import org.elasticsearch.cluster.metadata.IndexTemplateMetaData;
@@ -78,6 +79,37 @@ import java.util.function.UnaryOperator;
  * plugin author at the new extension syntax. We hope that these make the process of upgrading a plugin from 2.x to 5.x only mildly painful.
  */
 public abstract class Plugin implements Closeable {
+
+    protected final boolean transportClientMode;
+    protected final boolean enabled;
+    protected final Settings settings;
+
+    protected Plugin(Settings settings, Setting<Boolean> enabledSetting) {
+        this.settings = settings;
+        transportClientMode = TransportClient.transportClientMode(settings);
+        enabled = enabledSetting.get(settings);
+    }
+
+    protected Plugin() {
+        settings = Settings.EMPTY;
+        transportClientMode = false;
+        enabled = true;
+    }
+
+    /**
+     * A method for determining if a plugin is in transport client mode.
+     */
+    public boolean transportClientMode() {
+        return transportClientMode;
+    }
+
+    /**
+     * A method for determining if a plugin is enabled. In order to set this, pass the {@link Setting} that defines enabled to the
+     * constructor of this class.
+     */
+    public boolean enabled() {
+        return enabled;
+    }
 
     /**
      * Node level guice modules.

@@ -256,18 +256,13 @@ public class MachineLearning extends Plugin implements ActionPlugin, AnalysisPlu
 
     private static final Logger logger = Loggers.getLogger(XPackPlugin.class);
 
-    private final Settings settings;
     private final Environment env;
-    private final boolean enabled;
-    private final boolean transportClientMode;
 
     private final SetOnce<AutodetectProcessManager> autodetectProcessManager = new SetOnce<>();
     private final SetOnce<DatafeedManager> datafeedManager = new SetOnce<>();
 
     public MachineLearning(Settings settings, Path configPath) {
-        this.settings = settings;
-        this.enabled = XPackSettings.MACHINE_LEARNING_ENABLED.get(settings);
-        this.transportClientMode = XPackPlugin.transportClientMode(settings);
+        super(settings, XPackSettings.MACHINE_LEARNING_ENABLED);
         this.env = transportClientMode ? null : new Environment(settings, configPath);
     }
 
@@ -349,10 +344,6 @@ public class MachineLearning extends Plugin implements ActionPlugin, AnalysisPlu
                                                ResourceWatcherService resourceWatcherService, ScriptService scriptService,
                                                NamedXContentRegistry xContentRegistry, Environment environment,
                                                NodeEnvironment nodeEnvironment, NamedWriteableRegistry namedWriteableRegistry) {
-        if (enabled == false || transportClientMode) {
-            return emptyList();
-        }
-
         Auditor auditor = new Auditor(client, clusterService.nodeName());
         JobProvider jobProvider = new JobProvider(client, settings);
         UpdateJobProcessNotifier notifier = new UpdateJobProcessNotifier(settings, client, clusterService, threadPool);
@@ -447,9 +438,6 @@ public class MachineLearning extends Plugin implements ActionPlugin, AnalysisPlu
                                              IndexScopedSettings indexScopedSettings, SettingsFilter settingsFilter,
                                              IndexNameExpressionResolver indexNameExpressionResolver,
                                              Supplier<DiscoveryNodes> nodesInCluster) {
-        if (false == enabled) {
-            return emptyList();
-        }
         return Arrays.asList(
             new RestGetJobsAction(settings, restController),
             new RestGetJobStatsAction(settings, restController),
@@ -498,9 +486,6 @@ public class MachineLearning extends Plugin implements ActionPlugin, AnalysisPlu
 
     @Override
     public List<ActionHandler<? extends ActionRequest, ? extends ActionResponse>> getActions() {
-        if (false == enabled) {
-            return emptyList();
-        }
         return Arrays.asList(
                 new ActionHandler<>(GetJobsAction.INSTANCE, TransportGetJobsAction.class),
                 new ActionHandler<>(GetJobsStatsAction.INSTANCE, TransportGetJobsStatsAction.class),
@@ -552,9 +537,6 @@ public class MachineLearning extends Plugin implements ActionPlugin, AnalysisPlu
     }
     @Override
     public List<ExecutorBuilder<?>> getExecutorBuilders(Settings settings) {
-        if (false == enabled || transportClientMode) {
-            return emptyList();
-        }
         int maxNumberOfJobs = AutodetectProcessManager.MAX_OPEN_JOBS_PER_NODE.get(settings);
         // 4 threads per job: for cpp logging, result processing, state processing and
         // AutodetectProcessManager worker thread:

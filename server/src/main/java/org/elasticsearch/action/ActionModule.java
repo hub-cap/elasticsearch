@@ -507,7 +507,9 @@ public class ActionModule extends AbstractModule {
         actions.register(DeletePipelineAction.INSTANCE, DeletePipelineTransportAction.class);
         actions.register(SimulatePipelineAction.INSTANCE, SimulatePipelineTransportAction.class);
 
-        actionPlugins.stream().flatMap(p -> p.getActions().stream()).forEach(actions::register);
+        actionPlugins.stream()
+            .filter(ActionPlugin::enabled)
+            .flatMap(p -> p.getActions().stream()).forEach(actions::register);
 
         // Persistent tasks:
         actions.register(StartPersistentTaskAction.INSTANCE, StartPersistentTaskAction.TransportAction.class);
@@ -656,9 +658,11 @@ public class ActionModule extends AbstractModule {
         registerHandler.accept(new RestSnapshotAction(settings, restController));
         registerHandler.accept(new RestTemplatesAction(settings, restController));
         for (ActionPlugin plugin : actionPlugins) {
-            for (RestHandler handler : plugin.getRestHandlers(settings, restController, clusterSettings, indexScopedSettings,
+            if (plugin.enabled()) {
+                for (RestHandler handler : plugin.getRestHandlers(settings, restController, clusterSettings, indexScopedSettings,
                     settingsFilter, indexNameExpressionResolver, nodesInCluster)) {
-                registerHandler.accept(handler);
+                    registerHandler.accept(handler);
+                }
             }
         }
         registerHandler.accept(new RestCatAction(settings, restController, catActions));

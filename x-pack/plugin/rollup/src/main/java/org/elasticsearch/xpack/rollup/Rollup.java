@@ -94,15 +94,8 @@ public class Rollup extends Plugin implements ActionPlugin, PersistentTaskPlugin
     public static final Set<String> HEADER_FILTERS =
             new HashSet<>(Arrays.asList("es-security-runas-user", "_xpack_security_authentication"));
 
-
-    private final Settings settings;
-    private final boolean enabled;
-    private final boolean transportClientMode;
-
     public Rollup(Settings settings) {
-        this.settings = settings;
-        this.enabled = XPackSettings.ROLLUP_ENABLED.get(settings);
-        this.transportClientMode = XPackPlugin.transportClientMode(settings);
+        super(settings, XPackSettings.ROLLUP_ENABLED);
     }
 
     @Override
@@ -131,10 +124,6 @@ public class Rollup extends Plugin implements ActionPlugin, PersistentTaskPlugin
                                              IndexScopedSettings indexScopedSettings, SettingsFilter settingsFilter,
                                              IndexNameExpressionResolver indexNameExpressionResolver,
                                              Supplier<DiscoveryNodes> nodesInCluster) {
-        if (!enabled) {
-            return emptyList();
-        }
-
         return Arrays.asList(
                 new RestRollupSearchAction(settings, restController),
                 new RestPutRollupJobAction(settings, restController),
@@ -149,9 +138,6 @@ public class Rollup extends Plugin implements ActionPlugin, PersistentTaskPlugin
 
     @Override
     public List<ActionHandler<? extends ActionRequest, ? extends ActionResponse>> getActions() {
-        if (!enabled) {
-            return emptyList();
-        }
         return Arrays.asList(
                 new ActionHandler<>(RollupSearchAction.INSTANCE, TransportRollupSearchAction.class),
                 new ActionHandler<>(PutRollupJobAction.INSTANCE, TransportPutRollupJobAction.class),
@@ -165,10 +151,6 @@ public class Rollup extends Plugin implements ActionPlugin, PersistentTaskPlugin
 
     @Override
     public List<ExecutorBuilder<?>> getExecutorBuilders(Settings settings) {
-        if (false == enabled || transportClientMode) {
-            return emptyList();
-        }
-
         FixedExecutorBuilder indexing = new FixedExecutorBuilder(settings, Rollup.TASK_THREAD_POOL_NAME,
                 4, 4, "xpack.rollup.task_thread_pool");
 

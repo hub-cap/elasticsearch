@@ -80,28 +80,14 @@ public class Monitoring extends Plugin implements ActionPlugin {
                                                                              true,
                                                                              Setting.Property.Dynamic, Setting.Property.NodeScope);
 
-    protected final Settings settings;
-    private final boolean enabled;
-    private final boolean transportClientMode;
-
     public Monitoring(Settings settings) {
-        this.settings = settings;
-        this.transportClientMode = XPackPlugin.transportClientMode(settings);
-        this.enabled = XPackSettings.MONITORING_ENABLED.get(settings);
+        super(settings, XPackSettings.MONITORING_ENABLED);
     }
 
     // overridable by tests
     protected SSLService getSslService() { return XPackPlugin.getSharedSslService(); }
     protected XPackLicenseState getLicenseState() { return XPackPlugin.getSharedLicenseState(); }
     protected LicenseService getLicenseService() { return XPackPlugin.getSharedLicenseService(); }
-
-    boolean isEnabled() {
-        return enabled;
-    }
-
-    boolean isTransportClient() {
-        return transportClientMode;
-    }
 
     @Override
     public Collection<Module> createGuiceModules() {
@@ -121,10 +107,6 @@ public class Monitoring extends Plugin implements ActionPlugin {
                                                ResourceWatcherService resourceWatcherService, ScriptService scriptService,
                                                NamedXContentRegistry xContentRegistry, Environment environment,
                                                NodeEnvironment nodeEnvironment, NamedWriteableRegistry namedWriteableRegistry) {
-        if (enabled == false) {
-            return Collections.emptyList();
-        }
-
         final ClusterSettings clusterSettings = clusterService.getClusterSettings();
         final CleanerService cleanerService = new CleanerService(settings, clusterSettings, threadPool, getLicenseState());
         final SSLService dynamicSSLService = getSslService().createDynamicSSLService();
@@ -150,9 +132,6 @@ public class Monitoring extends Plugin implements ActionPlugin {
 
     @Override
     public List<ActionHandler<? extends ActionRequest, ? extends ActionResponse>> getActions() {
-        if (false == enabled) {
-            return emptyList();
-        }
         return singletonList(new ActionHandler<>(MonitoringBulkAction.INSTANCE, TransportMonitoringBulkAction.class));
     }
 
@@ -160,9 +139,6 @@ public class Monitoring extends Plugin implements ActionPlugin {
     public List<RestHandler> getRestHandlers(Settings settings, RestController restController, ClusterSettings clusterSettings,
             IndexScopedSettings indexScopedSettings, SettingsFilter settingsFilter, IndexNameExpressionResolver indexNameExpressionResolver,
             Supplier<DiscoveryNodes> nodesInCluster) {
-        if (false == enabled) {
-            return emptyList();
-        }
         return singletonList(new RestMonitoringBulkAction(settings, restController));
     }
 

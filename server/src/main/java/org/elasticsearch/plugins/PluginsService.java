@@ -30,6 +30,7 @@ import org.elasticsearch.ElasticsearchException;
 import org.elasticsearch.Version;
 import org.elasticsearch.action.admin.cluster.node.info.PluginsAndModules;
 import org.elasticsearch.bootstrap.JarHell;
+import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.Strings;
 import org.elasticsearch.common.collect.Tuple;
 import org.elasticsearch.common.component.AbstractComponent;
@@ -57,7 +58,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
@@ -66,7 +66,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static org.elasticsearch.common.io.FileSystemUtils.isAccessibleDirectory;
 
@@ -222,7 +221,9 @@ public class PluginsService extends AbstractComponent {
     public List<ExecutorBuilder<?>> getExecutorBuilders(Settings settings) {
         final ArrayList<ExecutorBuilder<?>> builders = new ArrayList<>();
         for (final Tuple<PluginInfo, Plugin> plugin : plugins) {
-            builders.addAll(plugin.v2().getExecutorBuilders(settings));
+            if (plugin.v2().enabled() && plugin.v2().transportClientMode() == false) {
+                builders.addAll(plugin.v2().getExecutorBuilders(settings));
+            }
         }
         return builders;
     }

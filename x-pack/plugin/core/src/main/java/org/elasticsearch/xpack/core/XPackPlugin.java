@@ -14,7 +14,6 @@ import org.elasticsearch.action.ActionResponse;
 import org.elasticsearch.action.GenericAction;
 import org.elasticsearch.action.support.ActionFilter;
 import org.elasticsearch.client.Client;
-import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.cluster.ClusterState;
 import org.elasticsearch.cluster.metadata.IndexNameExpressionResolver;
 import org.elasticsearch.cluster.metadata.MetaData;
@@ -59,18 +58,13 @@ import org.elasticsearch.xpack.core.ssl.SSLConfigurationReloader;
 import org.elasticsearch.xpack.core.ssl.SSLService;
 import org.elasticsearch.xpack.core.watcher.WatcherMetaData;
 
-import javax.security.auth.DestroyFailedException;
-
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.AccessController;
-import java.security.GeneralSecurityException;
 import java.security.PrivilegedAction;
 import java.time.Clock;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -115,7 +109,6 @@ public class XPackPlugin extends XPackClientPlugin implements ScriptPlugin, Exte
 
     protected final Settings settings;
     //private final Environment env;
-    protected boolean transportClientMode;
     protected final Licensing licensing;
     // These should not be directly accessed as they cannot be overriden in tests. Please use the getters so they can be overridden.
     private static final SetOnce<XPackLicenseState> licenseState = new SetOnce<>();
@@ -127,7 +120,6 @@ public class XPackPlugin extends XPackClientPlugin implements ScriptPlugin, Exte
             final Path configPath) {
         super(settings);
         this.settings = settings;
-        this.transportClientMode = transportClientMode(settings);
         Environment env = transportClientMode ? null : new Environment(settings, configPath);
 
         setSslService(new SSLService(settings, env));
@@ -298,10 +290,6 @@ public class XPackPlugin extends XPackClientPlugin implements ScriptPlugin, Exte
     public static Multibinder<XPackFeatureSet> createFeatureSetMultiBinder(Binder binder, Class<? extends XPackFeatureSet> featureSet) {
         binder.bind(featureSet).asEagerSingleton();
         return Multibinder.newSetBinder(binder, XPackFeatureSet.class);
-    }
-
-    public static boolean transportClientMode(Settings settings) {
-        return TransportClient.CLIENT_TYPE.equals(settings.get(Client.CLIENT_TYPE_SETTING_S.getKey()));
     }
 
     public static Path resolveConfigFile(Environment env, String name) {

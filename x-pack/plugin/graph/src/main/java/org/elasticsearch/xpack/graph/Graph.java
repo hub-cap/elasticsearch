@@ -50,9 +50,6 @@ public class Graph extends Plugin implements ActionPlugin {
 
     @Override
     public List<ActionHandler<? extends ActionRequest, ? extends ActionResponse>> getActions() {
-        if (false == enabled) {
-            return emptyList();
-        }
         return singletonList(new ActionHandler<>(GraphExploreAction.INSTANCE, TransportGraphExploreAction.class));
     }
 
@@ -61,9 +58,6 @@ public class Graph extends Plugin implements ActionPlugin {
                                              IndexScopedSettings indexScopedSettings, SettingsFilter settingsFilter,
                                              IndexNameExpressionResolver indexNameExpressionResolver,
                                              Supplier<DiscoveryNodes> nodesInCluster) {
-        if (false == enabled) {
-            return emptyList();
-        }
         return singletonList(new RestGraphAction(settings, restController));
     }
 }

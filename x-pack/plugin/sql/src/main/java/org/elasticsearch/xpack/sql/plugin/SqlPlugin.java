@@ -43,16 +43,15 @@ import static java.util.Collections.emptyList;
 
 public class SqlPlugin extends Plugin implements ActionPlugin {
 
-    private final boolean enabled;
     private final SqlLicenseChecker sqlLicenseChecker;
 
-    SqlPlugin(boolean enabled, SqlLicenseChecker sqlLicenseChecker) {
-        this.enabled = enabled;
+    SqlPlugin(Settings settings, SqlLicenseChecker sqlLicenseChecker) {
+        super(settings, XPackSettings.SQL_ENABLED);
         this.sqlLicenseChecker = sqlLicenseChecker;
     }
 
     public SqlPlugin(Settings settings) {
-        this(XPackSettings.SQL_ENABLED.get(settings), new SqlLicenseChecker(
+        this(settings, new SqlLicenseChecker(
                 (mode) -> {
                     XPackLicenseState licenseState = XPackPlugin.getSharedLicenseState();
                     switch (mode) {
@@ -86,9 +85,6 @@ public class SqlPlugin extends Plugin implements ActionPlugin {
      * Create components used by the sql plugin.
      */
     Collection<Object> createComponents(Client client, String clusterName, NamedWriteableRegistry namedWriteableRegistry) {
-        if (false == enabled) {
-            return emptyList();
-        }
         IndexResolver indexResolver = new IndexResolver(client, clusterName);
         return Arrays.asList(sqlLicenseChecker, indexResolver, new PlanExecutor(client, indexResolver, namedWriteableRegistry));
     }
@@ -98,11 +94,6 @@ public class SqlPlugin extends Plugin implements ActionPlugin {
                                              ClusterSettings clusterSettings, IndexScopedSettings indexScopedSettings,
                                              SettingsFilter settingsFilter, IndexNameExpressionResolver indexNameExpressionResolver,
                                              Supplier<DiscoveryNodes> nodesInCluster) {
-
-        if (false == enabled) {
-            return emptyList();
-        }
-
         return Arrays.asList(new RestSqlQueryAction(settings, restController),
                 new RestSqlTranslateAction(settings, restController),
                 new RestSqlClearCursorAction(settings, restController));
@@ -110,10 +101,6 @@ public class SqlPlugin extends Plugin implements ActionPlugin {
 
     @Override
     public List<ActionHandler<? extends ActionRequest, ? extends ActionResponse>> getActions() {
-        if (false == enabled) {
-            return emptyList();
-        }
-
         return Arrays.asList(new ActionHandler<>(SqlQueryAction.INSTANCE, TransportSqlQueryAction.class),
                 new ActionHandler<>(SqlTranslateAction.INSTANCE, TransportSqlTranslateAction.class),
                 new ActionHandler<>(SqlClearCursorAction.INSTANCE, TransportSqlClearCursorAction.class));

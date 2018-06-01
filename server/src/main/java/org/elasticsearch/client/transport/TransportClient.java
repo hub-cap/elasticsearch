@@ -19,6 +19,7 @@
 
 package org.elasticsearch.client.transport;
 
+import org.elasticsearch.client.Client;
 import org.elasticsearch.common.util.concurrent.ThreadContext;
 import org.elasticsearch.core.internal.io.IOUtils;
 import org.elasticsearch.action.Action;
@@ -202,7 +203,9 @@ public abstract class TransportClient extends AbstractClient {
             // construct the list of client actions
             final List<ActionPlugin> actionPlugins = pluginsService.filterPlugins(ActionPlugin.class);
             final List<GenericAction> clientActions =
-                    actionPlugins.stream().flatMap(p -> p.getClientActions().stream()).collect(Collectors.toList());
+                    actionPlugins.stream()
+                        .filter(ActionPlugin::enabled)
+                        .flatMap(p -> p.getClientActions().stream()).collect(Collectors.toList());
             // add all the base actions
             final List<? extends GenericAction<?, ?>> baseActions =
                     actionModule.getActions().values().stream().map(ActionPlugin.ActionHandler::getAction).collect(Collectors.toList());
@@ -390,5 +393,9 @@ public abstract class TransportClient extends AbstractClient {
     // pkg private for testing
     TransportClientNodesService getNodesService() {
         return nodesService;
+    }
+
+    public static boolean transportClientMode(Settings settings) {
+        return CLIENT_TYPE.equals(settings.get(Client.CLIENT_TYPE_SETTING_S.getKey()));
     }
 }

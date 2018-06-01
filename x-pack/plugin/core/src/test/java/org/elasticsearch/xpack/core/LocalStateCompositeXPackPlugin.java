@@ -126,8 +126,9 @@ public class LocalStateCompositeXPackPlugin extends XPackPlugin implements Scrip
     public Collection<Module> createGuiceModules() {
         ArrayList<Module> modules = new ArrayList<>();
         modules.addAll(super.createGuiceModules());
-        filterPlugins(Plugin.class).stream().forEach(p ->
-            modules.addAll(p.createGuiceModules())
+        filterPlugins(Plugin.class).stream()
+            .filter(Plugin::enabled)
+            .forEach(p -> modules.addAll(p.createGuiceModules())
         );
         return modules;
     }
@@ -138,10 +139,13 @@ public class LocalStateCompositeXPackPlugin extends XPackPlugin implements Scrip
                                                NamedXContentRegistry xContentRegistry, Environment environment,
                                                NodeEnvironment nodeEnvironment, NamedWriteableRegistry namedWriteableRegistry) {
         List<Object> components = new ArrayList<>();
+
         components.addAll(super.createComponents(client, clusterService, threadPool, resourceWatcherService, scriptService,
                 xContentRegistry, environment, nodeEnvironment, namedWriteableRegistry));
 
-        filterPlugins(Plugin.class).stream().forEach(p ->
+        filterPlugins(Plugin.class).stream()
+            .filter(Plugin::enabled)
+            .forEach(p ->
             components.addAll(p.createComponents(client, clusterService, threadPool, resourceWatcherService, scriptService,
                     xContentRegistry, environment, nodeEnvironment, namedWriteableRegistry))
         );
@@ -152,7 +156,9 @@ public class LocalStateCompositeXPackPlugin extends XPackPlugin implements Scrip
     public Collection<String> getRestHeaders() {
         List<String> headers = new ArrayList<>();
         headers.addAll(super.getRestHeaders());
-        filterPlugins(ActionPlugin.class).stream().forEach(p -> headers.addAll(p.getRestHeaders()));
+        filterPlugins(ActionPlugin.class).stream()
+            //.filter(ActionPlugin::enabled)
+            .forEach(p -> headers.addAll(p.getRestHeaders()));
         return headers;
     }
 
@@ -161,8 +167,9 @@ public class LocalStateCompositeXPackPlugin extends XPackPlugin implements Scrip
         ArrayList<Setting<?>> settings = new ArrayList<>();
         settings.addAll(super.getSettings());
 
-        filterPlugins(Plugin.class).stream().forEach(p ->
-                settings.addAll(p.getSettings())
+        filterPlugins(Plugin.class).stream()
+            //.filter(Plugin::enabled)
+            .forEach(p -> settings.addAll(p.getSettings())
         );
         return settings;
     }
@@ -171,8 +178,9 @@ public class LocalStateCompositeXPackPlugin extends XPackPlugin implements Scrip
     public List<String> getSettingsFilter() {
         List<String> filters = new ArrayList<>();
         filters.addAll(super.getSettingsFilter());
-        filterPlugins(Plugin.class).stream().forEach(p ->
-            filters.addAll(p.getSettingsFilter())
+        filterPlugins(Plugin.class).stream()
+            //.filter(Plugin::enabled)
+            .forEach(p -> filters.addAll(p.getSettingsFilter())
         );
         return filters;
     }
@@ -181,8 +189,9 @@ public class LocalStateCompositeXPackPlugin extends XPackPlugin implements Scrip
     public List<ActionHandler<? extends ActionRequest, ? extends ActionResponse>> getActions() {
         List<ActionHandler<? extends ActionRequest, ? extends ActionResponse>> actions = new ArrayList<>();
         actions.addAll(super.getActions());
-        filterPlugins(ActionPlugin.class).stream().forEach(p ->
-            actions.addAll(p.getActions())
+        filterPlugins(ActionPlugin.class).stream()
+            .filter(ActionPlugin::enabled)
+            .forEach(p -> actions.addAll(p.getActions())
         );
         return actions;
     }
@@ -191,8 +200,9 @@ public class LocalStateCompositeXPackPlugin extends XPackPlugin implements Scrip
     public List<ActionFilter> getActionFilters() {
         List<ActionFilter> filters = new ArrayList<>();
         filters.addAll(super.getActionFilters());
-        filterPlugins(ActionPlugin.class).stream().forEach(p ->
-            filters.addAll(p.getActionFilters())
+        filterPlugins(ActionPlugin.class).stream()
+            .filter(ActionPlugin::enabled)
+            .forEach(p -> filters.addAll(p.getActionFilters())
         );
         return filters;
     }
@@ -205,8 +215,10 @@ public class LocalStateCompositeXPackPlugin extends XPackPlugin implements Scrip
         List<RestHandler> handlers = new ArrayList<>();
         handlers.addAll(super.getRestHandlers(settings, restController, clusterSettings, indexScopedSettings, settingsFilter,
                 indexNameExpressionResolver, nodesInCluster));
-        filterPlugins(ActionPlugin.class).stream().forEach(p ->
-            handlers.addAll(p.getRestHandlers(settings, restController, clusterSettings, indexScopedSettings,
+        filterPlugins(ActionPlugin.class).stream()
+            .filter(ActionPlugin::enabled)
+            .forEach(p ->
+                handlers.addAll(p.getRestHandlers(settings, restController, clusterSettings, indexScopedSettings,
                     settingsFilter, indexNameExpressionResolver, nodesInCluster))
         );
         return handlers;
@@ -323,7 +335,9 @@ public class LocalStateCompositeXPackPlugin extends XPackPlugin implements Scrip
     @Override
     public List<ExecutorBuilder<?>> getExecutorBuilders(final Settings settings) {
         List<ExecutorBuilder<?>> builders = new ArrayList<>();
-        filterPlugins(Plugin.class).stream().forEach(p -> builders.addAll(p.getExecutorBuilders(settings)));
+        filterPlugins(Plugin.class).stream()
+            .filter(p -> p.enabled() && p.transportClientMode() == false)
+            .forEach(p -> builders.addAll(p.getExecutorBuilders(settings)));
         return builders;
     }
     @Override

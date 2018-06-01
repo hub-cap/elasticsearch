@@ -155,10 +155,17 @@ import java.util.function.Supplier;
 
 public class XPackClientPlugin extends Plugin implements ActionPlugin, NetworkPlugin {
 
-    private final Settings settings;
-
     public XPackClientPlugin(final Settings settings) {
-        this.settings = settings;
+        super(settings, XPackSettings.SECURITY_ENABLED);
+    }
+
+    /**
+     * Do not override this method with the SECURITY_ENABLED setting. This should evaluate to true even if SECURITY_ENABLED is set to false.
+     * Prior to refactor, this is how the code behaved, and it will continue to behave like this. This class should only be used in tests.
+     */
+    @Override
+    public boolean enabled() {
+        return true;
     }
 
     @Override
@@ -180,10 +187,6 @@ public class XPackClientPlugin extends Plugin implements ActionPlugin, NetworkPl
 
     @Override
     public Settings additionalSettings() {
-        return additionalSettings(settings, XPackSettings.SECURITY_ENABLED.get(settings), XPackPlugin.transportClientMode(settings));
-    }
-
-    static Settings additionalSettings(final Settings settings, final boolean enabled, final boolean transportClientMode) {
         if (enabled && transportClientMode) {
             final Settings.Builder builder = Settings.builder();
             builder.put(SecuritySettings.addTransportSettings(settings));
@@ -383,7 +386,7 @@ public class XPackClientPlugin extends Plugin implements ActionPlugin, NetworkPl
             final NamedWriteableRegistry namedWriteableRegistry,
             final NetworkService networkService) {
         // this should only be used in the transport layer, so do not add it if it is not in transport mode or we are disabled
-        if (XPackPlugin.transportClientMode(settings) == false || XPackSettings.SECURITY_ENABLED.get(settings) == false) {
+        if (transportClientMode == false || enabled == false) {
             return Collections.emptyMap();
         }
         final SSLService sslService;

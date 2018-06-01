@@ -217,18 +217,13 @@ public class Watcher extends Plugin implements ActionPlugin, ScriptPlugin {
     private WatcherIndexingListener listener;
     private HttpClient httpClient;
 
-    protected final Settings settings;
-    protected final boolean transportClient;
-    protected final boolean enabled;
     protected final Environment env;
 
     public Watcher(final Settings settings) {
-        this.settings = settings;
-        this.transportClient = XPackPlugin.transportClientMode(settings);
-        this.enabled = XPackSettings.WATCHER_ENABLED.get(settings);
-        env = transportClient ? null : new Environment(settings, null);
+        super(settings, XPackSettings.WATCHER_ENABLED);
+        env = transportClientMode ? null : new Environment(settings, null);
 
-        if (enabled && transportClient == false) {
+        if (enabled && transportClientMode == false) {
             validAutoCreateIndex(settings, logger);
         }
     }
@@ -243,10 +238,6 @@ public class Watcher extends Plugin implements ActionPlugin, ScriptPlugin {
                                                ResourceWatcherService resourceWatcherService, ScriptService scriptService,
                                                NamedXContentRegistry xContentRegistry, Environment environment,
                                                NodeEnvironment nodeEnvironment, NamedWriteableRegistry namedWriteableRegistry) {
-        if (enabled == false) {
-            return Collections.emptyList();
-        }
-
         // only initialize these classes if Watcher is enabled, and only after the plugin security policy for Watcher is in place
         BodyPartSource.init();
         Account.init();
@@ -388,7 +379,7 @@ public class Watcher extends Plugin implements ActionPlugin, ScriptPlugin {
         modules.add(b -> b.bind(Clock.class).toInstance(getClock())); //currently assuming the only place clock is bound
         modules.add(b -> {
             XPackPlugin.bindFeatureSet(b, WatcherFeatureSet.class);
-            if (transportClient || enabled == false) {
+            if (transportClientMode || enabled == false) {
                 b.bind(WatcherService.class).toProvider(Providers.of(null));
             }
         });
@@ -439,17 +430,14 @@ public class Watcher extends Plugin implements ActionPlugin, ScriptPlugin {
 
     @Override
     public List<ExecutorBuilder<?>> getExecutorBuilders(final Settings settings) {
-        if (enabled) {
-            final FixedExecutorBuilder builder =
-                    new FixedExecutorBuilder(
-                            settings,
-                            InternalWatchExecutor.THREAD_POOL_NAME,
-                            getWatcherThreadPoolSize(settings),
-                            1000,
-                            "xpack.watcher.thread_pool");
-            return Collections.singletonList(builder);
-        }
-        return Collections.emptyList();
+        final FixedExecutorBuilder builder =
+                new FixedExecutorBuilder(
+                        settings,
+                        InternalWatchExecutor.THREAD_POOL_NAME,
+                        getWatcherThreadPoolSize(settings),
+                        1000,
+                        "xpack.watcher.thread_pool");
+        return Collections.singletonList(builder);
     }
 
     /**
@@ -485,9 +473,6 @@ public class Watcher extends Plugin implements ActionPlugin, ScriptPlugin {
 
     @Override
     public List<ActionHandler<? extends ActionRequest, ? extends ActionResponse>> getActions() {
-        if (false == enabled) {
-            return emptyList();
-        }
         return Arrays.asList(new ActionHandler<>(PutWatchAction.INSTANCE, TransportPutWatchAction.class),
                 new ActionHandler<>(DeleteWatchAction.INSTANCE, TransportDeleteWatchAction.class),
                 new ActionHandler<>(GetWatchAction.INSTANCE, TransportGetWatchAction.class),
@@ -502,9 +487,6 @@ public class Watcher extends Plugin implements ActionPlugin, ScriptPlugin {
     public List<RestHandler> getRestHandlers(Settings settings, RestController restController, ClusterSettings clusterSettings,
             IndexScopedSettings indexScopedSettings, SettingsFilter settingsFilter, IndexNameExpressionResolver indexNameExpressionResolver,
             Supplier<DiscoveryNodes> nodesInCluster) {
-        if (false == enabled) {
-            return emptyList();
-        }
         return Arrays.asList(
                 new RestPutWatchAction(settings, restController),
                 new RestDeleteWatchAction(settings, restController),
@@ -518,7 +500,7 @@ public class Watcher extends Plugin implements ActionPlugin, ScriptPlugin {
 
     @Override
     public void onIndexModule(IndexModule module) {
-        if (enabled == false || transportClient) {
+        if (enabled == false || transportClientMode) {
             return;
         }
 

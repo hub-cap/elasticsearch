@@ -248,10 +248,7 @@ public class Security extends Plugin implements ActionPlugin, IngestPlugin, Netw
                 Collections.emptyList() : Collections.singletonList(LoggingAuditTrail.NAME),
             Function.identity(), Property.NodeScope);
 
-    private final Settings settings;
     private final Environment env;
-    private final boolean enabled;
-    private final boolean transportClientMode;
     /* what a PITA that we need an extra indirection to initialize this. Yet, once we got rid of guice we can thing about how
      * to fix this or make it simpler. Today we need several service that are created in createComponents but we need to register
      * an instance of TransportInterceptor way earlier before createComponents is called. */
@@ -273,10 +270,8 @@ public class Security extends Plugin implements ActionPlugin, IngestPlugin, Netw
     }
 
     Security(Settings settings, final Path configPath, List<SecurityExtension> extensions) {
-        this.settings = settings;
-        this.transportClientMode = XPackPlugin.transportClientMode(settings);
+        super(settings, XPackSettings.SECURITY_ENABLED);
         this.env = transportClientMode ? null : new Environment(settings, configPath);
-        this.enabled = XPackSettings.SECURITY_ENABLED.get(settings);
         if (enabled && transportClientMode == false) {
             validateAutoCreateIndex(settings);
         }
@@ -362,10 +357,6 @@ public class Security extends Plugin implements ActionPlugin, IngestPlugin, Netw
     // pkg private for testing - tests want to pass in their set of extensions hence we are not using the extension service directly
     Collection<Object> createComponents(Client client, ThreadPool threadPool, ClusterService clusterService,
                                                ResourceWatcherService resourceWatcherService) throws Exception {
-        if (enabled == false) {
-            return Collections.emptyList();
-        }
-
         threadContext.set(threadPool.getThreadContext());
         List<Object> components = new ArrayList<>();
         securityContext.set(new SecurityContext(settings, threadPool.getThreadContext()));
@@ -641,9 +632,6 @@ public class Security extends Plugin implements ActionPlugin, IngestPlugin, Netw
 
     @Override
     public List<ActionHandler<? extends ActionRequest, ? extends ActionResponse>> getActions() {
-        if (enabled == false) {
-            return emptyList();
-        }
         return Arrays.asList(
                 new ActionHandler<>(ClearRealmCacheAction.INSTANCE, TransportClearRealmCacheAction.class),
                 new ActionHandler<>(ClearRolesCacheAction.INSTANCE, TransportClearRolesCacheAction.class),
@@ -687,9 +675,6 @@ public class Security extends Plugin implements ActionPlugin, IngestPlugin, Netw
     public List<RestHandler> getRestHandlers(Settings settings, RestController restController, ClusterSettings clusterSettings,
             IndexScopedSettings indexScopedSettings, SettingsFilter settingsFilter, IndexNameExpressionResolver indexNameExpressionResolver,
             Supplier<DiscoveryNodes> nodesInCluster) {
-        if (enabled == false) {
-            return emptyList();
-        }
         return Arrays.asList(
                 new RestAuthenticateAction(settings, restController, securityContext.get(), getLicenseState()),
                 new RestClearRealmCacheAction(settings, restController, getLicenseState()),
@@ -872,11 +857,8 @@ public class Security extends Plugin implements ActionPlugin, IngestPlugin, Netw
 
     @Override
     public List<ExecutorBuilder<?>> getExecutorBuilders(final Settings settings) {
-        if (enabled && transportClientMode == false) {
-            return Collections.singletonList(
-                    new FixedExecutorBuilder(settings, TokenService.THREAD_POOL_NAME, 1, 1000, "xpack.security.authc.token.thread_pool"));
-        }
-        return Collections.emptyList();
+        return Collections.singletonList(
+                new FixedExecutorBuilder(settings, TokenService.THREAD_POOL_NAME, 1, 1000, "xpack.security.authc.token.thread_pool"));
     }
 
     @Override

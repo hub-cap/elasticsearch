@@ -57,6 +57,14 @@ import java.util.stream.Collectors;
  * }</pre>
  */
 public interface ActionPlugin {
+
+    /**
+     * Defines whether this plugin is enabled or not.
+     */
+    default boolean enabled() {
+        return true;
+    }
+
     /**
      * Actions added by this plugin.
      */
