@@ -41,7 +41,7 @@ import org.elasticsearch.xpack.core.ml.job.config.JobState;
 import org.elasticsearch.xpack.core.ml.job.process.autodetect.state.ModelSizeStats;
 import org.elasticsearch.xpack.core.ml.stats.ForecastStats;
 import org.elasticsearch.xpack.core.ml.stats.ForecastStatsTests;
-import org.elasticsearch.xpack.core.watcher.support.xcontent.XContentSource;
+import org.elasticsearch.xpack.core.watcher.support.xcontent.XContentServerSource;
 import org.junit.Before;
 
 import java.util.Arrays;
@@ -169,10 +169,10 @@ public class MachineLearningFeatureSetTests extends ESTestCase {
             assertThat(usage.name(), is(XPackField.MACHINE_LEARNING));
             assertThat(usage.enabled(), is(true));
             assertThat(usage.available(), is(true));
-            XContentSource source;
+            XContentServerSource source;
             try (XContentBuilder builder = XContentFactory.jsonBuilder()) {
                 usage.toXContent(builder, ToXContent.EMPTY_PARAMS);
-                source = new XContentSource(builder);
+                source = new XContentServerSource(builder);
             }
 
             assertThat(source.getValue("jobs._all.count"), equalTo(3));
@@ -239,10 +239,10 @@ public class MachineLearningFeatureSetTests extends ESTestCase {
         assertThat(usage.available(), is(true));
         assertThat(usage.enabled(), is(true));
 
-        XContentSource source;
+        XContentServerSource source;
         try (XContentBuilder builder = XContentFactory.jsonBuilder()) {
             usage.toXContent(builder, ToXContent.EMPTY_PARAMS);
-            source = new XContentSource(builder);
+            source = new XContentServerSource(builder);
         }
 
         assertThat(source.getValue("jobs._all.count"), equalTo(0));

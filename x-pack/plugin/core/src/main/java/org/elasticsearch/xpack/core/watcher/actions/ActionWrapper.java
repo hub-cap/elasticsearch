@@ -17,12 +17,13 @@ import org.elasticsearch.license.XPackLicenseState;
 import org.elasticsearch.xpack.core.watcher.actions.throttler.ActionThrottler;
 import org.elasticsearch.xpack.core.watcher.actions.throttler.Throttler;
 import org.elasticsearch.xpack.core.watcher.actions.throttler.ThrottlerField;
-import org.elasticsearch.xpack.core.watcher.condition.Condition;
+import org.elasticsearch.xpack.core.watcher.condition.ConditionResult;
 import org.elasticsearch.xpack.core.watcher.condition.ExecutableCondition;
 import org.elasticsearch.xpack.core.watcher.execution.WatchExecutionContext;
 import org.elasticsearch.xpack.core.watcher.support.WatcherDateTimeUtils;
 import org.elasticsearch.xpack.core.watcher.transform.ExecutableTransform;
 import org.elasticsearch.xpack.core.watcher.transform.Transform;
+import org.elasticsearch.xpack.core.watcher.transform.TransformResult;
 import org.elasticsearch.xpack.core.watcher.watch.Payload;
 import org.elasticsearch.xpack.core.watcher.watch.WatchField;
 import org.joda.time.DateTime;
@@ -40,13 +41,13 @@ public class ActionWrapper implements ToXContentObject {
     @Nullable
     private final ExecutableCondition condition;
     @Nullable
-    private final ExecutableTransform<Transform, Transform.Result> transform;
+    private final ExecutableTransform<Transform, TransformResult> transform;
     private final ActionThrottler throttler;
     private final ExecutableAction<? extends Action> action;
 
     public ActionWrapper(String id, ActionThrottler throttler,
                          @Nullable ExecutableCondition condition,
-                         @Nullable ExecutableTransform<Transform, Transform.Result> transform,
+                         @Nullable ExecutableTransform<Transform, TransformResult> transform,
                          ExecutableAction<? extends Action> action) {
         this.id = id;
         this.condition = condition;
@@ -63,7 +64,7 @@ public class ActionWrapper implements ToXContentObject {
         return condition;
     }
 
-    public ExecutableTransform<Transform, Transform.Result> transform() {
+    public ExecutableTransform<Transform, TransformResult> transform() {
         return transform;
     }
 
@@ -98,55 +99,55 @@ public class ActionWrapper implements ToXContentObject {
             Throttler.Result throttleResult = throttler.throttle(id, ctx);
             if (throttleResult.throttle()) {
                 if (throttleResult.type() == Throttler.Type.ACK) {
-                    return new ActionWrapperResult(id, new Action.Result.Acknowledged(action.type(), throttleResult.reason()));
+                    return new ActionWrapperResult(id, new ActionResult.Acknowledged(action.type(), throttleResult.reason()));
                 } else {
-                    return new ActionWrapperResult(id, new Action.Result.Throttled(action.type(), throttleResult.reason()));
+                    return new ActionWrapperResult(id, new ActionResult.Throttled(action.type(), throttleResult.reason()));
                 }
             }
         }
-        Condition.Result conditionResult = null;
+        ConditionResult conditionResult = null;
         if (condition != null) {
             try {
                 conditionResult = condition.execute(ctx);
                 if (conditionResult.met() == false) {
                     ctx.watch().status().actionStatus(id).resetAckStatus(DateTime.now(DateTimeZone.UTC));
                     return new ActionWrapperResult(id, conditionResult, null,
-                                                    new Action.Result.ConditionFailed(action.type(), "condition not met. skipping"));
+                                                    new ActionResult.ConditionFailed(action.type(), "condition not met. skipping"));
                 }
             } catch (RuntimeException e) {
                 action.logger().error(
                         (Supplier<?>) () -> new ParameterizedMessage(
                                 "failed to execute action [{}/{}]. failed to execute condition", ctx.watch().id(), id), e);
-                return new ActionWrapperResult(id, new Action.Result.ConditionFailed(action.type(),
+                return new ActionWrapperResult(id, new ActionResult.ConditionFailed(action.type(),
                                                 "condition failed. skipping: {}", e.getMessage()));
             }
         }
         Payload payload = ctx.payload();
-        Transform.Result transformResult = null;
+        TransformResult transformResult = null;
         if (transform != null) {
             try {
                 transformResult = transform.execute(ctx, payload);
-                if (transformResult.status() == Transform.Result.Status.FAILURE) {
+                if (transformResult.status() == TransformResult.Status.FAILURE) {
                     action.logger().error("failed to execute action [{}/{}]. failed to transform payload. {}", ctx.watch().id(), id,
                             transformResult.reason());
                     String msg = "Failed to transform payload";
-                    return new ActionWrapperResult(id, conditionResult, transformResult, new Action.Result.Failure(action.type(), msg));
+                    return new ActionWrapperResult(id, conditionResult, transformResult, new ActionResult.Failure(action.type(), msg));
                 }
                 payload = transformResult.payload();
             } catch (Exception e) {
                 action.logger().error(
                         (Supplier<?>) () -> new ParameterizedMessage(
                                 "failed to execute action [{}/{}]. failed to transform payload.", ctx.watch().id(), id), e);
-                return new ActionWrapperResult(id, conditionResult, null, new Action.Result.FailureWithException(action.type(), e));
+                return new ActionWrapperResult(id, conditionResult, null, new ActionResult.FailureWithException(action.type(), e));
             }
         }
         try {
-            Action.Result actionResult = action.execute(id, ctx, payload);
+            ActionResult actionResult = action.execute(id, ctx, payload);
             return new ActionWrapperResult(id, conditionResult, transformResult, actionResult);
         } catch (Exception e) {
             action.logger().error(
                     (Supplier<?>) () -> new ParameterizedMessage("failed to execute action [{}/{}]", ctx.watch().id(), id), e);
-            return new ActionWrapperResult(id, new Action.Result.FailureWithException(action.type(), e));
+            return new ActionWrapperResult(id, new ActionResult.FailureWithException(action.type(), e));
         }
     }
 
@@ -196,7 +197,7 @@ public class ActionWrapper implements ToXContentObject {
         assert parser.currentToken() == XContentParser.Token.START_OBJECT;
 
         ExecutableCondition condition = null;
-        ExecutableTransform<Transform, Transform.Result> transform = null;
+        ExecutableTransform<Transform, TransformResult> transform = null;
         TimeValue throttlePeriod = null;
         ExecutableAction<? extends Action> action = null;
 

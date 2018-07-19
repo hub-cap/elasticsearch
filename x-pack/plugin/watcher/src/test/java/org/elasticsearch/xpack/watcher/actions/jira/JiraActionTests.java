@@ -16,7 +16,7 @@ import org.elasticsearch.common.xcontent.XContentParser;
 import org.elasticsearch.common.xcontent.json.JsonXContent;
 import org.elasticsearch.script.ScriptService;
 import org.elasticsearch.test.ESTestCase;
-import org.elasticsearch.xpack.core.watcher.actions.Action;
+import org.elasticsearch.xpack.core.watcher.actions.ActionResult;
 import org.elasticsearch.xpack.core.watcher.execution.WatchExecutionContext;
 import org.elasticsearch.xpack.core.watcher.execution.Wid;
 import org.elasticsearch.xpack.core.watcher.watch.Payload;
@@ -244,8 +244,8 @@ public class JiraActionTests extends ESTestCase {
                 .buildMock();
         when(context.simulateAction("test")).thenReturn(false);
 
-        Action.Result result = executable.execute("test", context, new Payload.Simple());
-        assertThat(result, instanceOf(JiraAction.Result.class));
+        ActionResult result = executable.execute("test", context, new Payload.Simple());
+        assertThat(result, instanceOf(ActionResult.class));
         assertThat(result, instanceOf(JiraAction.Executed.class));
 
         JiraIssue issue = ((JiraAction.Executed) result).getResult();

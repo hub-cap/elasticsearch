@@ -14,7 +14,7 @@ import org.elasticsearch.common.io.stream.Streamable;
 import org.elasticsearch.common.xcontent.ToXContentObject;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentParser;
-import org.elasticsearch.xpack.core.watcher.actions.Action;
+import org.elasticsearch.xpack.core.watcher.actions.ActionResult;
 import org.elasticsearch.xpack.core.watcher.actions.ActionStatus;
 import org.elasticsearch.xpack.core.watcher.execution.ExecutionState;
 import org.elasticsearch.xpack.core.watcher.support.xcontent.WatcherParams;
@@ -145,7 +145,7 @@ public class WatchStatus implements ToXContentObject, Streamable {
         }
     }
 
-    public void onActionResult(String actionId, DateTime timestamp, Action.Result result) {
+    public void onActionResult(String actionId, DateTime timestamp, ActionResult result) {
         ActionStatus status = actions.get(actionId);
         status.update(timestamp, result);
     }
@@ -163,7 +163,7 @@ public class WatchStatus implements ToXContentObject, Streamable {
         boolean changed = false;
         boolean containsAll = false;
         for (String actionId : actionIds) {
-            if (actionId.equals(WatchField.ALL_ACTIONS_ID)) {
+            if (actionId.equals(Watch.ALL_ACTIONS_ID)) {
                 containsAll = true;
                 break;
             }

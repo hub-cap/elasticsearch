@@ -16,6 +16,7 @@ import org.elasticsearch.search.aggregations.AggregationBuilders;
 import org.elasticsearch.search.aggregations.BucketOrder;
 import org.elasticsearch.search.aggregations.bucket.histogram.DateHistogramInterval;
 import org.elasticsearch.search.internal.InternalSearchResponse;
+import org.elasticsearch.xpack.core.watcher.condition.ConditionResult;
 import org.elasticsearch.xpack.core.watcher.execution.WatchExecutionContext;
 import org.elasticsearch.xpack.core.watcher.watch.Payload;
 import org.elasticsearch.xpack.watcher.test.AbstractWatcherIntegrationTestCase;
@@ -46,7 +47,7 @@ public class CompareConditionSearchTests extends AbstractWatcherIntegrationTestC
         CompareCondition condition = new CompareCondition("ctx.payload.aggregations.rate.buckets.0.doc_count", CompareCondition.Op.GTE, 5,
                 Clock.systemUTC());
         WatchExecutionContext ctx = mockExecutionContext("_name", new Payload.XContent(response));
-        CompareCondition.Result result = condition.execute(ctx);
+        ConditionResult result = condition.execute(ctx);
         assertThat(result.met(), is(false));
         Map<String, Object> resolvedValues = result.getResolvedValues();
         assertThat(resolvedValues, notNullValue());
@@ -86,7 +87,7 @@ public class CompareConditionSearchTests extends AbstractWatcherIntegrationTestC
         assertThat(condition.execute(ctx).met(), is(true));
         hit.score(2f);
         when(ctx.payload()).thenReturn(new Payload.XContent(response));
-        CompareCondition.Result result = condition.execute(ctx);
+        ConditionResult result = condition.execute(ctx);
         assertThat(result.met(), is(false));
         Map<String, Object> resolvedValues = result.getResolvedValues();
         assertThat(resolvedValues, notNullValue());

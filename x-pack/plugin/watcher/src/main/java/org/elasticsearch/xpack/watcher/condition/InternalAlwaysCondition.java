@@ -8,6 +8,7 @@ package org.elasticsearch.xpack.watcher.condition;
 import org.elasticsearch.ElasticsearchParseException;
 import org.elasticsearch.common.xcontent.XContentParser;
 import org.elasticsearch.xpack.core.watcher.condition.AlwaysCondition;
+import org.elasticsearch.xpack.core.watcher.condition.ConditionResult;
 import org.elasticsearch.xpack.core.watcher.condition.ExecutableCondition;
 import org.elasticsearch.xpack.core.watcher.execution.WatchExecutionContext;
 
@@ -15,7 +16,7 @@ import java.io.IOException;
 
 public final class InternalAlwaysCondition extends AlwaysCondition implements ExecutableCondition {
 
-    public static final Result RESULT_INSTANCE = new Result(null, TYPE, true);
+    public static final ConditionResult RESULT_INSTANCE = new ConditionResult(null, TYPE, true);
     public static final InternalAlwaysCondition INSTANCE = new InternalAlwaysCondition();
 
     private InternalAlwaysCondition() { }
@@ -34,7 +35,7 @@ public final class InternalAlwaysCondition extends AlwaysCondition implements Ex
     }
 
     @Override
-    public Result execute(WatchExecutionContext ctx) {
+    public ConditionResult execute(WatchExecutionContext ctx) {
         return RESULT_INSTANCE;
     }
 

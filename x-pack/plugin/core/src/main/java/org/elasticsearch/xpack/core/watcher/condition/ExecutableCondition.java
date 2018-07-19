@@ -12,5 +12,5 @@ public interface ExecutableCondition extends Condition {
     /**
      * Executes this condition
      */
-    Result execute(WatchExecutionContext ctx);
+    ConditionResult execute(WatchExecutionContext ctx);
 }

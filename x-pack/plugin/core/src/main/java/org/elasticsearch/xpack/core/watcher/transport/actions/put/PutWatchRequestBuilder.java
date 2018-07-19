@@ -11,7 +11,7 @@ import org.elasticsearch.common.bytes.BytesReference;
 import org.elasticsearch.common.xcontent.XContentType;
 import org.elasticsearch.protocol.xpack.watcher.PutWatchRequest;
 import org.elasticsearch.protocol.xpack.watcher.PutWatchResponse;
-import org.elasticsearch.xpack.core.watcher.client.WatchSourceBuilder;
+import org.elasticsearch.protocol.xpack.watcher.client.WatchSourceBuilder;
 
 public class PutWatchRequestBuilder extends ActionRequestBuilder<PutWatchRequest, PutWatchResponse> {
 

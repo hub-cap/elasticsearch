@@ -17,8 +17,8 @@ import org.elasticsearch.test.ESTestCase;
 import org.elasticsearch.test.http.MockResponse;
 import org.elasticsearch.test.http.MockWebServer;
 import org.elasticsearch.xpack.core.ssl.SSLService;
-import org.elasticsearch.xpack.core.watcher.actions.Action;
-import org.elasticsearch.xpack.core.watcher.actions.Action.Result.Status;
+import org.elasticsearch.xpack.core.watcher.actions.ActionResult;
+import org.elasticsearch.xpack.core.watcher.actions.ActionResult.Status;
 import org.elasticsearch.xpack.core.watcher.execution.WatchExecutionContext;
 import org.elasticsearch.xpack.core.watcher.watch.Payload;
 import org.elasticsearch.xpack.core.watcher.watch.Watch;
@@ -97,7 +97,7 @@ public class WebhookActionTests extends ESTestCase {
         ExecutableWebhookAction executable = new ExecutableWebhookAction(action, logger, httpClient, templateEngine);
         WatchExecutionContext ctx = WatcherTestUtils.mockExecutionContext("_id", new Payload.Simple("foo", "bar"));
 
-        Action.Result actionResult = executable.execute("_id", ctx, Payload.EMPTY);
+        ActionResult actionResult = executable.execute("_id", ctx, Payload.EMPTY);
 
         scenario.assertResult(httpClient, actionResult);
     }
@@ -259,7 +259,7 @@ public class WebhookActionTests extends ESTestCase {
                 new ScheduleTriggerEvent(watchId, new DateTime(UTC), new DateTime(UTC)), timeValueSeconds(5));
         Watch watch = createWatch(watchId);
         ctx.ensureWatchExists(() -> watch);
-        Action.Result result = executable.execute("_id", ctx, new Payload.Simple());
+        ActionResult result = executable.execute("_id", ctx, new Payload.Simple());
         assertThat(result, Matchers.instanceOf(WebhookAction.Result.Success.class));
     }
 
@@ -282,7 +282,7 @@ public class WebhookActionTests extends ESTestCase {
             }
 
             @Override
-            public void assertResult(HttpClient client, Action.Result actionResult) throws Exception {
+            public void assertResult(HttpClient client, ActionResult actionResult) throws Exception {
                 assertThat(actionResult.status(), is(Status.FAILURE));
                 assertThat(actionResult, instanceOf(WebhookAction.Result.Failure.class));
                 WebhookAction.Result.Failure executedActionResult = (WebhookAction.Result.Failure) actionResult;
@@ -303,7 +303,7 @@ public class WebhookActionTests extends ESTestCase {
             }
 
             @Override
-            public void assertResult(HttpClient client, Action.Result actionResult) throws Exception {
+            public void assertResult(HttpClient client, ActionResult actionResult) throws Exception {
                 assertThat(actionResult, instanceOf(WebhookAction.Result.Failure.class));
                 WebhookAction.Result.Failure failResult = (WebhookAction.Result.Failure) actionResult;
                 assertThat(failResult.status(), is(Status.FAILURE));
@@ -320,7 +320,7 @@ public class WebhookActionTests extends ESTestCase {
             }
 
             @Override
-            public void assertResult(HttpClient client, Action.Result actionResult) throws Exception {
+            public void assertResult(HttpClient client, ActionResult actionResult) throws Exception {
                 assertThat(actionResult.status(), is(Status.SUCCESS));
                 assertThat(actionResult, instanceOf(WebhookAction.Result.Success.class));
                 WebhookAction.Result.Success executedActionResult = (WebhookAction.Result.Success) actionResult;
@@ -338,13 +338,13 @@ public class WebhookActionTests extends ESTestCase {
             }
 
             @Override
-            public void assertResult(HttpClient client, Action.Result actionResult) throws Exception {
+            public void assertResult(HttpClient client, ActionResult actionResult) throws Exception {
                 verify(client, never()).execute(any(HttpRequest.class));
             }
         };
 
         public abstract HttpClient client() throws IOException;
 
-        public abstract void assertResult(HttpClient client, Action.Result result) throws Exception ;
+        public abstract void assertResult(HttpClient client, ActionResult result) throws Exception ;
     }
 }

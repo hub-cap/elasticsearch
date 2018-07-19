@@ -7,12 +7,8 @@ package org.elasticsearch.xpack.core.watcher.support;
 
 import org.elasticsearch.common.Strings;
 import org.elasticsearch.common.unit.TimeValue;
-import org.elasticsearch.common.xcontent.ToXContentObject;
-import org.elasticsearch.common.xcontent.XContentHelper;
-import org.elasticsearch.common.xcontent.XContentType;
 import org.joda.time.DateTime;
 
-import java.io.IOException;
 import java.lang.reflect.Array;
 import java.util.HashMap;
 import java.util.Map;
@@ -20,15 +16,11 @@ import java.util.regex.Pattern;
 
 import static org.elasticsearch.xpack.core.watcher.support.WatcherDateTimeUtils.formatDate;
 
-public final class WatcherUtils {
+public final class WatcherServerUtils {
 
     private static final Pattern NO_WS_PATTERN = Pattern.compile("\\S+");
 
-    private WatcherUtils() {
-    }
-
-    public static Map<String, Object> responseToData(ToXContentObject response) throws IOException {
-        return XContentHelper.convertToMap(XContentHelper.toXContent(response, XContentType.JSON, false), false, XContentType.JSON).v2();
+    private WatcherServerUtils() {
     }
 
     public static Map<String, Object> flattenModel(Map<String, Object> map) {

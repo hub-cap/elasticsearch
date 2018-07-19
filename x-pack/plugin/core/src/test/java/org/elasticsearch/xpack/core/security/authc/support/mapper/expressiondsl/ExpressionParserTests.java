@@ -18,7 +18,7 @@ import org.elasticsearch.common.xcontent.XContentType;
 import org.elasticsearch.test.ESTestCase;
 import org.elasticsearch.xpack.core.XPackClientPlugin;
 import org.elasticsearch.xpack.core.security.authc.support.mapper.expressiondsl.FieldExpression.FieldValue;
-import org.elasticsearch.xpack.core.watcher.support.xcontent.XContentSource;
+import org.elasticsearch.xpack.core.watcher.support.xcontent.XContentServerSource;
 
 import java.io.IOException;
 import java.io.StringWriter;
@@ -150,7 +150,7 @@ public class ExpressionParserTests extends ESTestCase {
     }
 
     private RoleMapperExpression parse(String json) throws IOException {
-        return new ExpressionParser().parse("rules", new XContentSource(new BytesArray(json),
+        return new ExpressionParser().parse("rules", new XContentServerSource(new BytesArray(json),
                 XContentType.JSON));
     }
 

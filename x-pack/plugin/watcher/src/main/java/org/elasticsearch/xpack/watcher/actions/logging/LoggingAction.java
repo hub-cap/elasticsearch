@@ -11,6 +11,7 @@ import org.elasticsearch.common.ParseField;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentParser;
 import org.elasticsearch.xpack.core.watcher.actions.Action;
+import org.elasticsearch.xpack.core.watcher.actions.ActionResult;
 import org.elasticsearch.xpack.watcher.common.text.TextTemplate;
 
 import java.io.IOException;
@@ -117,7 +118,7 @@ public class LoggingAction implements Action {
 
     public interface Result {
 
-        class Success extends Action.Result implements Result {
+        class Success extends ActionResult implements Result {
 
             private final String loggedText;
 
@@ -138,7 +139,7 @@ public class LoggingAction implements Action {
             }
         }
 
-        class Simulated extends Action.Result implements Result {
+        class Simulated extends ActionResult implements Result {
 
             private final String loggedText;
 

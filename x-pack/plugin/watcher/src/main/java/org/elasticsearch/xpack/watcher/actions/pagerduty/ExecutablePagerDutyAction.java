@@ -6,7 +6,7 @@
 package org.elasticsearch.xpack.watcher.actions.pagerduty;
 
 import org.apache.logging.log4j.Logger;
-import org.elasticsearch.xpack.core.watcher.actions.Action;
+import org.elasticsearch.xpack.core.watcher.actions.ActionResult;
 import org.elasticsearch.xpack.core.watcher.actions.ExecutableAction;
 import org.elasticsearch.xpack.core.watcher.execution.WatchExecutionContext;
 import org.elasticsearch.xpack.core.watcher.watch.Payload;
@@ -32,7 +32,7 @@ public class ExecutablePagerDutyAction extends ExecutableAction<PagerDutyAction>
     }
 
     @Override
-    public Action.Result execute(final String actionId, WatchExecutionContext ctx, Payload payload) throws Exception {
+    public ActionResult execute(final String actionId, WatchExecutionContext ctx, Payload payload) throws Exception {
 
         PagerDutyAccount account = pagerDutyService.getAccount(action.event.account);
         if (account == null) {

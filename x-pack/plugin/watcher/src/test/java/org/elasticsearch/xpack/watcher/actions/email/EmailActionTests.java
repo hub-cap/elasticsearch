@@ -17,7 +17,7 @@ import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentParser;
 import org.elasticsearch.common.xcontent.json.JsonXContent;
 import org.elasticsearch.test.ESTestCase;
-import org.elasticsearch.xpack.core.watcher.actions.Action;
+import org.elasticsearch.xpack.core.watcher.actions.ActionResult;
 import org.elasticsearch.xpack.core.watcher.common.secret.Secret;
 import org.elasticsearch.xpack.core.watcher.execution.WatchExecutionContext;
 import org.elasticsearch.xpack.core.watcher.execution.Wid;
@@ -165,7 +165,7 @@ public class EmailActionTests extends ESTestCase {
             when(engine.render(htmlBody, expectedModel)).thenReturn(htmlBody.getTemplate());
         }
 
-        Action.Result result = executable.execute("_id", ctx, payload);
+        ActionResult result = executable.execute("_id", ctx, payload);
 
         assertThat(result, notNullValue());
         assertThat(result, instanceOf(EmailAction.Result.Success.class));
@@ -450,7 +450,7 @@ public class EmailActionTests extends ESTestCase {
         ExecutableEmailAction executableEmailAction =
                 emailActionFactory.parseExecutable(randomAlphaOfLength(3), randomAlphaOfLength(7), parser);
 
-        Action.Result result = executableEmailAction.execute("test", createWatchExecutionContext(), new Payload.Simple());
+        ActionResult result = executableEmailAction.execute("test", createWatchExecutionContext(), new Payload.Simple());
         assertThat(result, instanceOf(EmailAction.Result.Success.class));
 
         EmailAction.Result.Success successResult = (EmailAction.Result.Success) result;
@@ -485,7 +485,7 @@ public class EmailActionTests extends ESTestCase {
         ExecutableEmailAction executableEmailAction =
                 emailActionFactory.parseExecutable(randomAlphaOfLength(3), randomAlphaOfLength(7), parser);
 
-        Action.Result result = executableEmailAction.execute("test", createWatchExecutionContext(), new Payload.Simple());
+        ActionResult result = executableEmailAction.execute("test", createWatchExecutionContext(), new Payload.Simple());
         assertThat(result, instanceOf(EmailAction.Result.Success.class));
 
         EmailAction.Result.Success successResult = (EmailAction.Result.Success) result;
@@ -548,7 +548,7 @@ public class EmailActionTests extends ESTestCase {
                 .metadata(metadata)
                 .buildMock();
 
-        Action.Result result = executableEmailAction.execute("test", ctx, new Payload.Simple());
+        ActionResult result = executableEmailAction.execute("test", ctx, new Payload.Simple());
         assertThat(result, instanceOf(EmailAction.Result.FailureWithException.class));
         EmailAction.Result.FailureWithException failure = (EmailAction.Result.FailureWithException) result;
         assertThat(failure.getException().getMessage(),

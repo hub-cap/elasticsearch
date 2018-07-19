@@ -16,9 +16,9 @@ import org.elasticsearch.script.Script;
 import org.elasticsearch.script.ScriptType;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.elasticsearch.test.junit.annotations.TestLogging;
-import org.elasticsearch.xpack.core.watcher.client.WatchSourceBuilder;
+import org.elasticsearch.protocol.xpack.watcher.client.WatchSourceBuilder;
 import org.elasticsearch.xpack.core.watcher.client.WatcherClient;
-import org.elasticsearch.xpack.core.watcher.support.xcontent.XContentSource;
+import org.elasticsearch.xpack.core.watcher.support.xcontent.XContentServerSource;
 import org.elasticsearch.xpack.core.watcher.transport.actions.delete.DeleteWatchResponse;
 import org.elasticsearch.xpack.core.watcher.transport.actions.get.GetWatchResponse;
 import org.elasticsearch.xpack.core.watcher.watch.Watch;
@@ -264,7 +264,7 @@ public class BasicWatcherTests extends AbstractWatcherIntegrationTestCase {
         refresh();
         SearchResponse searchResponse = searchWatchRecords(builder -> builder.setQuery(matchQuery("watch_id", "_name1")));
         assertHitCount(searchResponse, 1);
-        XContentSource source = xContentSource(searchResponse.getHits().getAt(0).getSourceRef());
+        XContentServerSource source = xContentSource(searchResponse.getHits().getAt(0).getSourceRef());
         assertThat(source.getValue("result.input.payload.hits.total"), equalTo((Object) 1));
     }
 

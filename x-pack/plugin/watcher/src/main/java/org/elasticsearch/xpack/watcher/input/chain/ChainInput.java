@@ -11,6 +11,7 @@ import org.elasticsearch.common.collect.Tuple;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentParser;
 import org.elasticsearch.xpack.core.watcher.input.Input;
+import org.elasticsearch.xpack.core.watcher.input.InputResult;
 import org.elasticsearch.xpack.core.watcher.watch.Payload;
 import org.elasticsearch.xpack.watcher.input.InputRegistry;
 
@@ -117,11 +118,11 @@ public class ChainInput implements Input {
         }
     }
 
-    public static class Result extends Input.Result {
+    public static class Result extends InputResult {
 
-        private List<Tuple<String, Input.Result>> results = Collections.emptyList();
+        private List<Tuple<String, InputResult>> results = Collections.emptyList();
 
-        protected Result(List<Tuple<String, Input.Result>> results, Payload payload) {
+        protected Result(List<Tuple<String, InputResult>> results, Payload payload) {
             super(TYPE, payload);
             this.results = results;
         }
@@ -133,7 +134,7 @@ public class ChainInput implements Input {
         @Override
         protected XContentBuilder typeXContent(XContentBuilder builder, Params params) throws IOException {
             builder.startObject(type);
-            for (Tuple<String, Input.Result> tuple : results) {
+            for (Tuple<String, InputResult> tuple : results) {
                 builder.field(tuple.v1(), tuple.v2());
             }
             builder.endObject();

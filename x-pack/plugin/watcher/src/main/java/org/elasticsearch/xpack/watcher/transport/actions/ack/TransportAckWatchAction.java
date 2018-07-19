@@ -31,7 +31,6 @@ import org.elasticsearch.xpack.core.watcher.transport.actions.ack.AckWatchRespon
 import org.elasticsearch.xpack.core.watcher.transport.actions.stats.WatcherStatsAction;
 import org.elasticsearch.xpack.core.watcher.transport.actions.stats.WatcherStatsRequest;
 import org.elasticsearch.xpack.core.watcher.watch.Watch;
-import org.elasticsearch.xpack.core.watcher.watch.WatchField;
 import org.elasticsearch.xpack.watcher.transport.actions.WatcherTransportAction;
 import org.elasticsearch.xpack.watcher.watch.WatchParser;
 import org.joda.time.DateTime;
@@ -88,7 +87,7 @@ public class TransportAckWatchAction extends WatcherTransportAction<AckWatchRequ
                             watch.status().version(getResponse.getVersion());
                             String[] actionIds = request.getActionIds();
                             if (actionIds == null || actionIds.length == 0) {
-                                actionIds = new String[]{WatchField.ALL_ACTIONS_ID};
+                                actionIds = new String[]{Watch.ALL_ACTIONS_ID};
                             }
 
                             // exit early in case nothing changes
@@ -104,7 +103,7 @@ public class TransportAckWatchAction extends WatcherTransportAction<AckWatchRequ
                             updateRequest.setRefreshPolicy(WriteRequest.RefreshPolicy.IMMEDIATE);
                             XContentBuilder builder = jsonBuilder();
                             builder.startObject()
-                                .startObject(WatchField.STATUS.getPreferredName())
+                                .startObject(Watch.STATUS.getPreferredName())
                                 .startObject("actions");
 
                             List<String> actionIdsAsList = Arrays.asList(actionIds);

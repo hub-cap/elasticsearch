@@ -12,7 +12,7 @@ import org.elasticsearch.common.io.stream.StreamInput;
 import org.elasticsearch.common.io.stream.StreamOutput;
 import org.elasticsearch.common.xcontent.NamedXContentRegistry;
 import org.elasticsearch.common.xcontent.XContentParser;
-import org.elasticsearch.xpack.core.watcher.support.xcontent.XContentSource;
+import org.elasticsearch.xpack.core.watcher.support.xcontent.XContentServerSource;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -54,7 +54,7 @@ public final class ExpressionParser {
      *                descriptive error messages.
      * @param content The XContent (typically JSON) DSL representation of the expression
      */
-    public RoleMapperExpression parse(String name, XContentSource content) throws IOException {
+    public RoleMapperExpression parse(String name, XContentServerSource content) throws IOException {
         try (InputStream stream = content.getBytes().streamInput()) {
             return parse(name, content.parser(NamedXContentRegistry.EMPTY, stream));
         }

@@ -14,7 +14,7 @@ import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentParser;
 import org.elasticsearch.common.xcontent.json.JsonXContent;
 import org.elasticsearch.test.ESTestCase;
-import org.elasticsearch.xpack.core.watcher.actions.Action;
+import org.elasticsearch.xpack.core.watcher.actions.ActionResult;
 import org.elasticsearch.xpack.core.watcher.execution.WatchExecutionContext;
 import org.elasticsearch.xpack.core.watcher.execution.Wid;
 import org.elasticsearch.xpack.core.watcher.watch.Payload;
@@ -114,11 +114,11 @@ public class PagerDutyActionTests extends ESTestCase {
         when(account.send(event, payload)).thenReturn(sentEvent);
         when(service.getAccount(accountName)).thenReturn(account);
 
-        Action.Result result = executable.execute("_id", ctx, payload);
+        ActionResult result = executable.execute("_id", ctx, payload);
 
         assertThat(result, notNullValue());
         assertThat(result, instanceOf(PagerDutyAction.Result.Executed.class));
-        assertThat(result.status(), equalTo(Action.Result.Status.SUCCESS));
+        assertThat(result.status(), equalTo(ActionResult.Status.SUCCESS));
         assertThat(((PagerDutyAction.Result.Executed) result).sentEvent(), sameInstance(sentEvent));
     }
 

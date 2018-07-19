@@ -12,7 +12,7 @@ import org.elasticsearch.protocol.xpack.watcher.PutWatchResponse;
 import org.elasticsearch.script.MockScriptPlugin;
 import org.elasticsearch.xpack.core.watcher.client.WatcherClient;
 import org.elasticsearch.xpack.core.watcher.support.xcontent.ObjectPath;
-import org.elasticsearch.xpack.core.watcher.support.xcontent.XContentSource;
+import org.elasticsearch.xpack.core.watcher.support.xcontent.XContentServerSource;
 import org.elasticsearch.xpack.core.watcher.transport.actions.execute.ExecuteWatchResponse;
 import org.elasticsearch.xpack.watcher.condition.ScriptCondition;
 import org.elasticsearch.xpack.watcher.test.AbstractWatcherIntegrationTestCase;
@@ -200,7 +200,7 @@ public class ExecutionVarsIntegrationTests extends AbstractWatcherIntegrationTes
                 .setDebug(debug)
                 .get();
         assertThat(executeWatchResponse.getRecordId(), notNullValue());
-        XContentSource source = executeWatchResponse.getRecordSource();
+        XContentServerSource source = executeWatchResponse.getRecordSource();
 
         assertValue(source, "watch_id", is(watchId));
         assertValue(source, "state", is("executed"));

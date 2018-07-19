@@ -162,9 +162,9 @@ public class WatchParser extends AbstractComponent {
                 actions = actionRegistry.parseActions(id, parser);
             } else if (WatchField.METADATA.match(currentFieldName, parser.getDeprecationHandler())) {
                 metatdata = parser.map();
-            } else if (WatchField.VERSION.match(currentFieldName, parser.getDeprecationHandler())) {
+            } else if (Watch.VERSION.match(currentFieldName, parser.getDeprecationHandler())) {
                 version = parser.longValue();
-            } else if (WatchField.STATUS.match(currentFieldName, parser.getDeprecationHandler())) {
+            } else if (Watch.STATUS.match(currentFieldName, parser.getDeprecationHandler())) {
                 if (includeStatus) {
                     status = WatchStatus.parse(id, parser);
                 } else {

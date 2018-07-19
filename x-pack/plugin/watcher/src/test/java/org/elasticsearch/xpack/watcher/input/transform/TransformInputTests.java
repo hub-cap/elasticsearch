@@ -20,7 +20,7 @@ import org.elasticsearch.script.ScriptType;
 import org.elasticsearch.test.ESTestCase;
 import org.elasticsearch.xpack.core.watcher.execution.WatchExecutionContext;
 import org.elasticsearch.xpack.core.watcher.input.ExecutableInput;
-import org.elasticsearch.xpack.core.watcher.input.Input;
+import org.elasticsearch.xpack.core.watcher.input.InputResult;
 import org.elasticsearch.xpack.core.watcher.transform.ExecutableTransform;
 import org.elasticsearch.xpack.core.watcher.transform.TransformFactory;
 import org.elasticsearch.xpack.core.watcher.transform.TransformRegistry;
@@ -64,7 +64,7 @@ public class TransformInputTests extends ESTestCase {
         ExecutableInput input = new ExecutableTransformInput(transformInput, logger, executableTransform);
 
         WatchExecutionContext ctx = WatcherTestUtils.mockExecutionContext("_id", Payload.EMPTY);
-        Input.Result result = input.execute(ctx, new Payload.Simple());
+        InputResult result = input.execute(ctx, new Payload.Simple());
         assertThat(result.payload().data().size(), is(1));
         assertThat(result.payload().data(), hasEntry("_value", "2"));
     }

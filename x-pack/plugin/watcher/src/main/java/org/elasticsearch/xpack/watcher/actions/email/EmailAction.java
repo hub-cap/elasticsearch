@@ -11,6 +11,7 @@ import org.elasticsearch.common.ParseField;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentParser;
 import org.elasticsearch.xpack.core.watcher.actions.Action;
+import org.elasticsearch.xpack.core.watcher.actions.ActionResult;
 import org.elasticsearch.xpack.core.watcher.common.secret.Secret;
 import org.elasticsearch.xpack.core.watcher.crypto.CryptoService;
 import org.elasticsearch.xpack.core.watcher.support.xcontent.WatcherParams;
@@ -185,7 +186,7 @@ public class EmailAction implements Action {
         return new Builder(email);
     }
 
-    public abstract static class Result extends Action.Result {
+    public abstract static class Result extends ActionResult {
 
         protected Result(Status status) {
             super(TYPE, status);

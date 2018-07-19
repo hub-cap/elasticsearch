@@ -13,7 +13,7 @@ import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentParser;
 import org.elasticsearch.common.xcontent.json.JsonXContent;
 import org.elasticsearch.test.ESTestCase;
-import org.elasticsearch.xpack.core.watcher.actions.Action;
+import org.elasticsearch.xpack.core.watcher.actions.ActionResult;
 import org.elasticsearch.xpack.core.watcher.execution.WatchExecutionContext;
 import org.elasticsearch.xpack.core.watcher.execution.Wid;
 import org.elasticsearch.xpack.core.watcher.watch.Payload;
@@ -130,12 +130,12 @@ public class SlackActionTests extends ESTestCase {
         SentMessages sentMessages = new SentMessages(accountName, messages);
         when(account.send(message, eq(any()))).thenReturn(sentMessages);
 
-        Action.Result.Status expectedStatus = !hasError ? Action.Result.Status.SUCCESS :
-                !hasSuccess ? Action.Result.Status.FAILURE :
-                        Action.Result.Status.PARTIAL_FAILURE;
+        ActionResult.Status expectedStatus = !hasError ? ActionResult.Status.SUCCESS :
+                !hasSuccess ? ActionResult.Status.FAILURE :
+                        ActionResult.Status.PARTIAL_FAILURE;
 
 
-        Action.Result result = executable.execute("_action", ctx, payload);
+        ActionResult result = executable.execute("_action", ctx, payload);
 
         assertThat(result, notNullValue());
         assertThat(result, instanceOf(SlackAction.Result.Executed.class));

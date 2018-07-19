@@ -12,7 +12,7 @@ import org.elasticsearch.test.ESTestCase;
 import org.elasticsearch.xpack.core.watcher.execution.WatchExecutionContext;
 import org.elasticsearch.xpack.core.watcher.execution.Wid;
 import org.elasticsearch.xpack.core.watcher.input.ExecutableInput;
-import org.elasticsearch.xpack.core.watcher.input.Input;
+import org.elasticsearch.xpack.core.watcher.input.InputResult;
 import org.elasticsearch.xpack.core.watcher.watch.Payload;
 import org.elasticsearch.xpack.watcher.input.simple.SimpleInput;
 import org.joda.time.DateTime;
@@ -21,7 +21,7 @@ import org.joda.time.DateTimeZone;
 import java.io.IOException;
 import java.util.Arrays;
 
-import static org.elasticsearch.xpack.core.watcher.input.Input.Result.Status;
+import static org.elasticsearch.xpack.core.watcher.input.InputResult.Status;
 import static org.elasticsearch.xpack.watcher.test.WatcherTestUtils.mockExecutionContextBuilder;
 import static org.hamcrest.Matchers.is;
 
@@ -37,19 +37,19 @@ public class ExecutableChainInputTests extends ESTestCase {
         assertThat(result.status(), is(Status.SUCCESS));
     }
 
-    private class FailingExecutableInput extends ExecutableInput<SimpleInput, Input.Result> {
+    private class FailingExecutableInput extends ExecutableInput<SimpleInput, InputResult> {
 
         protected FailingExecutableInput() {
             super(new SimpleInput(Payload.EMPTY), ExecutableChainInputTests.this.logger);
         }
 
         @Override
-        public Input.Result execute(WatchExecutionContext ctx, @Nullable Payload payload) {
+        public InputResult execute(WatchExecutionContext ctx, @Nullable Payload payload) {
             return new FailingExecutableInputResult(new RuntimeException("foo"));
         }
     }
 
-    private static class FailingExecutableInputResult extends Input.Result {
+    private static class FailingExecutableInputResult extends InputResult {
 
         protected FailingExecutableInputResult(Exception e) {
             super("failing", e);

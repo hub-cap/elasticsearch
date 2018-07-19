@@ -25,7 +25,6 @@ import org.elasticsearch.xpack.core.watcher.transport.actions.activate.ActivateW
 import org.elasticsearch.xpack.core.watcher.transport.actions.activate.ActivateWatchRequest;
 import org.elasticsearch.xpack.core.watcher.transport.actions.activate.ActivateWatchResponse;
 import org.elasticsearch.xpack.core.watcher.watch.Watch;
-import org.elasticsearch.xpack.core.watcher.watch.WatchField;
 import org.elasticsearch.xpack.core.watcher.watch.WatchStatus;
 import org.elasticsearch.xpack.watcher.transport.actions.WatcherTransportAction;
 import org.elasticsearch.xpack.watcher.watch.WatchParser;
@@ -98,7 +97,7 @@ public class TransportActivateWatchAction extends WatcherTransportAction<Activat
     private XContentBuilder activateWatchBuilder(boolean active, DateTime now) throws IOException {
         try (XContentBuilder builder = jsonBuilder()) {
             builder.startObject()
-                    .startObject(WatchField.STATUS.getPreferredName())
+                    .startObject(Watch.STATUS.getPreferredName())
                     .startObject(WatchStatus.Field.STATE.getPreferredName())
                     .field(WatchStatus.Field.ACTIVE.getPreferredName(), active);
 

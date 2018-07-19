@@ -25,6 +25,7 @@ import org.elasticsearch.xpack.core.watcher.support.xcontent.WatcherParams;
 import org.elasticsearch.xpack.core.watcher.transport.actions.execute.ExecuteWatchRequest;
 import org.elasticsearch.xpack.core.watcher.transport.actions.execute.ExecuteWatchRequestBuilder;
 import org.elasticsearch.xpack.core.watcher.transport.actions.execute.ExecuteWatchResponse;
+import org.elasticsearch.xpack.core.watcher.watch.Watch;
 import org.elasticsearch.xpack.core.watcher.watch.WatchField;
 import org.elasticsearch.xpack.watcher.rest.WatcherRestHandler;
 
@@ -45,8 +46,8 @@ public class RestExecuteWatchAction extends WatcherRestHandler implements RestRe
             WatchField.INPUT.getPreferredName(), WatchField.CONDITION.getPreferredName(),
             WatchField.ACTIONS.getPreferredName(), WatchField.TRANSFORM.getPreferredName(),
             WatchField.THROTTLE_PERIOD.getPreferredName(), WatchField.THROTTLE_PERIOD_HUMAN.getPreferredName(),
-            WatchField.METADATA.getPreferredName(), WatchField.STATUS.getPreferredName(),
-            WatchField.VERSION.getPreferredName());
+            WatchField.METADATA.getPreferredName(), Watch.STATUS.getPreferredName(),
+            Watch.VERSION.getPreferredName());
 
     public RestExecuteWatchAction(Settings settings, RestController controller) {
         super(settings);

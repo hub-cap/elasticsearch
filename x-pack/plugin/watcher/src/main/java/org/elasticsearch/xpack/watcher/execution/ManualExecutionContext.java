@@ -6,13 +6,13 @@
 package org.elasticsearch.xpack.watcher.execution;
 
 import org.elasticsearch.common.unit.TimeValue;
-import org.elasticsearch.xpack.core.watcher.actions.Action;
+import org.elasticsearch.xpack.core.watcher.actions.ActionResult;
 import org.elasticsearch.xpack.core.watcher.actions.ActionWrapper;
 import org.elasticsearch.xpack.core.watcher.actions.ActionWrapperResult;
-import org.elasticsearch.xpack.core.watcher.condition.Condition;
+import org.elasticsearch.xpack.core.watcher.condition.ConditionResult;
 import org.elasticsearch.xpack.core.watcher.execution.ActionExecutionMode;
 import org.elasticsearch.xpack.core.watcher.execution.WatchExecutionContext;
-import org.elasticsearch.xpack.core.watcher.input.Input;
+import org.elasticsearch.xpack.core.watcher.input.InputResult;
 import org.elasticsearch.xpack.core.watcher.watch.Watch;
 import org.elasticsearch.xpack.watcher.trigger.manual.ManualTriggerEvent;
 import org.joda.time.DateTime;
@@ -30,7 +30,7 @@ public class ManualExecutionContext extends WatchExecutionContext {
     private final boolean knownWatch;
 
     ManualExecutionContext(Watch watch, boolean knownWatch, DateTime executionTime, ManualTriggerEvent triggerEvent,
-                           TimeValue defaultThrottlePeriod, Input.Result inputResult, Condition.Result conditionResult,
+                           TimeValue defaultThrottlePeriod, InputResult inputResult, ConditionResult conditionResult,
                            Map<String, ActionExecutionMode> actionModes, boolean recordExecution) throws Exception {
 
         super(watch.id(), executionTime, triggerEvent, defaultThrottlePeriod);
@@ -54,12 +54,12 @@ public class ManualExecutionContext extends WatchExecutionContext {
             for (ActionWrapper action : watch.actions()) {
                 if (throttleAll) {
                     onActionResult(new ActionWrapperResult(action.id(),
-                            new Action.Result.Throttled(action.action().type(), "manually skipped")));
+                            new ActionResult.Throttled(action.action().type(), "manually skipped")));
                 } else {
                     ActionExecutionMode mode = actionModes.get(action.id());
                     if (mode == ActionExecutionMode.SKIP) {
                         onActionResult(new ActionWrapperResult(action.id(),
-                                new Action.Result.Throttled(action.action().type(), "manually skipped")));
+                                new ActionResult.Throttled(action.action().type(), "manually skipped")));
                     }
                 }
             }
@@ -116,8 +116,8 @@ public class ManualExecutionContext extends WatchExecutionContext {
         protected DateTime executionTime;
         private boolean recordExecution = false;
         private Map<String, ActionExecutionMode> actionModes = new HashMap<>();
-        private Input.Result inputResult;
-        private Condition.Result conditionResult;
+        private InputResult inputResult;
+        private ConditionResult conditionResult;
 
         private Builder(Watch watch, boolean knownWatch, ManualTriggerEvent triggerEvent, TimeValue defaultThrottlePeriod) {
             this.watch = watch;
@@ -152,12 +152,12 @@ public class ManualExecutionContext extends WatchExecutionContext {
             return this;
         }
 
-        public Builder withInput(Input.Result inputResult) {
+        public Builder withInput(InputResult inputResult) {
             this.inputResult = inputResult;
             return this;
         }
 
-        public Builder withCondition(Condition.Result conditionResult) {
+        public Builder withCondition(ConditionResult conditionResult) {
             this.conditionResult = conditionResult;
             return this;
         }

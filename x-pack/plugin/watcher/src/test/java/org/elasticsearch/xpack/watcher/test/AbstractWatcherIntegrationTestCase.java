@@ -46,7 +46,7 @@ import org.elasticsearch.xpack.core.watcher.execution.ExecutionState;
 import org.elasticsearch.xpack.core.watcher.execution.TriggeredWatchStoreField;
 import org.elasticsearch.xpack.core.watcher.history.HistoryStoreField;
 import org.elasticsearch.xpack.core.watcher.support.WatcherIndexTemplateRegistryField;
-import org.elasticsearch.xpack.core.watcher.support.xcontent.XContentSource;
+import org.elasticsearch.xpack.core.watcher.support.xcontent.XContentServerSource;
 import org.elasticsearch.xpack.core.watcher.transport.actions.stats.WatcherStatsResponse;
 import org.elasticsearch.xpack.core.watcher.watch.ClockMock;
 import org.elasticsearch.xpack.core.watcher.watch.Watch;
@@ -307,7 +307,7 @@ public abstract class AbstractWatcherIntegrationTestCase extends ESIntegTestCase
         return internalCluster().getInstance(IndexNameExpressionResolver.class);
     }
 
-    protected void assertValue(XContentSource source, String path, Matcher<?> matcher) {
+    protected void assertValue(XContentServerSource source, String path, Matcher<?> matcher) {
         assertThat(source.getValue(path), (Matcher<Object>) matcher);
     }
 

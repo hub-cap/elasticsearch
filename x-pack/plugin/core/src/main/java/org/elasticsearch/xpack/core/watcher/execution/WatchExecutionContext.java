@@ -11,10 +11,10 @@ import org.elasticsearch.common.util.concurrent.ConcurrentCollections;
 import org.elasticsearch.xpack.core.security.authc.Authentication;
 import org.elasticsearch.xpack.core.security.authc.AuthenticationField;
 import org.elasticsearch.xpack.core.watcher.actions.ActionWrapperResult;
-import org.elasticsearch.xpack.core.watcher.condition.Condition;
+import org.elasticsearch.xpack.core.watcher.condition.ConditionResult;
 import org.elasticsearch.xpack.core.watcher.history.WatchRecord;
-import org.elasticsearch.xpack.core.watcher.input.Input;
-import org.elasticsearch.xpack.core.watcher.transform.Transform;
+import org.elasticsearch.xpack.core.watcher.input.InputResult;
+import org.elasticsearch.xpack.core.watcher.transform.TransformResult;
 import org.elasticsearch.xpack.core.watcher.trigger.TriggerEvent;
 import org.elasticsearch.xpack.core.watcher.watch.Payload;
 import org.elasticsearch.xpack.core.watcher.watch.Watch;
@@ -41,9 +41,9 @@ public abstract class WatchExecutionContext {
     private Payload payload;
     private Map<String, Object> vars = new HashMap<>();
 
-    private Input.Result inputResult;
-    private Condition.Result conditionResult;
-    private Transform.Result transformResult;
+    private InputResult inputResult;
+    private ConditionResult conditionResult;
+    private TransformResult transformResult;
     private ConcurrentMap<String, ActionWrapperResult> actionsResults = ConcurrentCollections.newConcurrentMap();
     private String nodeId;
     private String user;
@@ -158,15 +158,15 @@ public abstract class WatchExecutionContext {
         phase = ExecutionPhase.INPUT;
     }
 
-    public void onInputResult(Input.Result inputResult) {
+    public void onInputResult(InputResult inputResult) {
         assert !phase.sealed();
         this.inputResult = inputResult;
-        if (inputResult.status() == Input.Result.Status.SUCCESS) {
+        if (inputResult.status() == InputResult.Status.SUCCESS) {
             this.payload = inputResult.payload();
         }
     }
 
-    public Input.Result inputResult() {
+    public InputResult inputResult() {
         return inputResult;
     }
 
@@ -175,13 +175,13 @@ public abstract class WatchExecutionContext {
         phase = ExecutionPhase.CONDITION;
     }
 
-    public void onConditionResult(Condition.Result conditionResult) {
+    public void onConditionResult(ConditionResult conditionResult) {
         assert !phase.sealed();
         this.conditionResult = conditionResult;
         watch().status().onCheck(conditionResult.met(), executionTime);
     }
 
-    public Condition.Result conditionResult() {
+    public ConditionResult conditionResult() {
         return conditionResult;
     }
 
@@ -190,15 +190,15 @@ public abstract class WatchExecutionContext {
         this.phase = ExecutionPhase.WATCH_TRANSFORM;
     }
 
-    public void onWatchTransformResult(Transform.Result result) {
+    public void onWatchTransformResult(TransformResult result) {
         assert !phase.sealed();
         this.transformResult = result;
-        if (result.status() == Transform.Result.Status.SUCCESS) {
+        if (result.status() == TransformResult.Status.SUCCESS) {
             this.payload = result.payload();
         }
     }
 
-    public Transform.Result transformResult() {
+    public TransformResult transformResult() {
         return transformResult;
     }
 

@@ -9,7 +9,7 @@ import org.apache.logging.log4j.Logger;
 import org.elasticsearch.common.collect.Tuple;
 import org.elasticsearch.xpack.core.watcher.execution.WatchExecutionContext;
 import org.elasticsearch.xpack.core.watcher.input.ExecutableInput;
-import org.elasticsearch.xpack.core.watcher.input.Input;
+import org.elasticsearch.xpack.core.watcher.input.InputResult;
 import org.elasticsearch.xpack.core.watcher.watch.Payload;
 
 import java.util.ArrayList;
@@ -30,12 +30,12 @@ public class ExecutableChainInput extends ExecutableInput<ChainInput,ChainInput.
 
     @Override
     public ChainInput.Result execute(WatchExecutionContext ctx, Payload payload) {
-        List<Tuple<String, Input.Result>> results = new ArrayList<>();
+        List<Tuple<String, InputResult>> results = new ArrayList<>();
         Map<String, Object> payloads = new HashMap<>();
 
         try {
             for (Tuple<String, ExecutableInput> tuple : inputs) {
-                Input.Result result = tuple.v2().execute(ctx, new Payload.Simple(payloads));
+                InputResult result = tuple.v2().execute(ctx, new Payload.Simple(payloads));
                 results.add(new Tuple<>(tuple.v1(), result));
                 payloads.put(tuple.v1(), result.payload().data());
             }

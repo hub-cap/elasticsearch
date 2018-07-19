@@ -17,7 +17,7 @@ import org.elasticsearch.xpack.core.watcher.client.WatcherClient;
 import org.elasticsearch.xpack.core.watcher.crypto.CryptoService;
 import org.elasticsearch.xpack.core.watcher.crypto.CryptoServiceTests;
 import org.elasticsearch.xpack.core.watcher.execution.ActionExecutionMode;
-import org.elasticsearch.xpack.core.watcher.support.xcontent.XContentSource;
+import org.elasticsearch.xpack.core.watcher.support.xcontent.XContentServerSource;
 import org.elasticsearch.xpack.core.watcher.transport.actions.execute.ExecuteWatchResponse;
 import org.elasticsearch.xpack.core.watcher.transport.actions.get.GetWatchResponse;
 import org.elasticsearch.xpack.core.watcher.trigger.TriggerEvent;
@@ -121,7 +121,7 @@ public class HttpSecretsIntegrationTests extends AbstractWatcherIntegrationTestC
         GetWatchResponse watchResponse = watcherClient.prepareGetWatch("_id").get();
         assertThat(watchResponse, notNullValue());
         assertThat(watchResponse.getId(), is("_id"));
-        XContentSource contentSource = watchResponse.getSource();
+        XContentServerSource contentSource = watchResponse.getSource();
         value = contentSource.getValue("input.http.request.auth.basic");
         assertThat(value, notNullValue()); // making sure we have the basic auth
         value = contentSource.getValue("input.http.request.auth.basic.password");
@@ -202,7 +202,7 @@ public class HttpSecretsIntegrationTests extends AbstractWatcherIntegrationTestC
         GetWatchResponse watchResponse = watcherClient.prepareGetWatch("_id").get();
         assertThat(watchResponse, notNullValue());
         assertThat(watchResponse.getId(), is("_id"));
-        XContentSource contentSource = watchResponse.getSource();
+        XContentServerSource contentSource = watchResponse.getSource();
         value = contentSource.getValue("actions._webhook.webhook.auth.basic");
         assertThat(value, notNullValue()); // making sure we have the basic auth
         value = contentSource.getValue("actions._webhook.webhook.auth.basic.password");

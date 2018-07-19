@@ -6,7 +6,7 @@
 package org.elasticsearch.xpack.watcher.actions.jira;
 
 import org.apache.logging.log4j.Logger;
-import org.elasticsearch.xpack.core.watcher.actions.Action;
+import org.elasticsearch.xpack.core.watcher.actions.ActionResult;
 import org.elasticsearch.xpack.core.watcher.actions.ExecutableAction;
 import org.elasticsearch.xpack.core.watcher.execution.WatchExecutionContext;
 import org.elasticsearch.xpack.core.watcher.watch.Payload;
@@ -35,7 +35,7 @@ public class ExecutableJiraAction extends ExecutableAction<JiraAction> {
     }
 
     @Override
-    public Action.Result execute(final String actionId, WatchExecutionContext ctx, Payload payload) throws Exception {
+    public ActionResult execute(final String actionId, WatchExecutionContext ctx, Payload payload) throws Exception {
         JiraAccount account = jiraService.getAccount(action.account);
         if (account == null) {
             // the account associated with this action was deleted

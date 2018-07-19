@@ -21,7 +21,7 @@ import org.elasticsearch.xpack.core.watcher.actions.ActionWrapper;
 import org.elasticsearch.xpack.core.watcher.common.secret.Secret;
 import org.elasticsearch.xpack.core.watcher.execution.WatchExecutionContext;
 import org.elasticsearch.xpack.core.watcher.execution.Wid;
-import org.elasticsearch.xpack.core.watcher.support.xcontent.XContentSource;
+import org.elasticsearch.xpack.core.watcher.support.xcontent.XContentServerSource;
 import org.elasticsearch.xpack.core.watcher.trigger.TriggerEvent;
 import org.elasticsearch.xpack.core.watcher.watch.Payload;
 import org.elasticsearch.xpack.core.watcher.watch.Watch;
@@ -75,9 +75,9 @@ public final class WatcherTestUtils {
     private WatcherTestUtils() {
     }
 
-    public static XContentSource xContentSource(BytesReference bytes) {
+    public static XContentServerSource xContentSource(BytesReference bytes) {
         XContent xContent = XContentFactory.xContent(XContentHelper.xContentType(bytes));
-        return new XContentSource(bytes, xContent.type());
+        return new XContentServerSource(bytes, xContent.type());
     }
 
     public static WatcherSearchTemplateRequest templateRequest(SearchSourceBuilder sourceBuilder, String... indices) {

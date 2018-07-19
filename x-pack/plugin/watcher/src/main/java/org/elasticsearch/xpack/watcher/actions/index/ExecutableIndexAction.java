@@ -18,12 +18,12 @@ import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentType;
 import org.elasticsearch.xpack.core.ClientHelper;
-import org.elasticsearch.xpack.core.watcher.actions.Action;
-import org.elasticsearch.xpack.core.watcher.actions.Action.Result.Status;
+import org.elasticsearch.xpack.core.watcher.actions.ActionResult;
+import org.elasticsearch.xpack.core.watcher.actions.ActionResult.Status;
 import org.elasticsearch.xpack.core.watcher.actions.ExecutableAction;
 import org.elasticsearch.xpack.core.watcher.execution.WatchExecutionContext;
 import org.elasticsearch.xpack.core.watcher.support.WatcherDateTimeUtils;
-import org.elasticsearch.xpack.core.watcher.support.xcontent.XContentSource;
+import org.elasticsearch.xpack.core.watcher.support.xcontent.XContentServerSource;
 import org.elasticsearch.xpack.core.watcher.watch.Payload;
 import org.elasticsearch.xpack.watcher.support.ArrayObjectIterator;
 import org.joda.time.DateTime;
@@ -55,7 +55,7 @@ public class ExecutableIndexAction extends ExecutableAction<IndexAction> {
     }
 
     @Override
-    public Action.Result execute(String actionId, WatchExecutionContext ctx, Payload payload) throws Exception {
+    public ActionResult execute(String actionId, WatchExecutionContext ctx, Payload payload) throws Exception {
         Map<String, Object> data = payload.data();
         if (data.containsKey("_doc")) {
             Object doc = data.get("_doc");
@@ -93,7 +93,7 @@ public class ExecutableIndexAction extends ExecutableAction<IndexAction> {
 
         if (ctx.simulateAction(actionId)) {
             return new IndexAction.Simulated(indexRequest.index(), indexRequest.type(), indexRequest.id(), action.refreshPolicy,
-                    new XContentSource(indexRequest.source(), XContentType.JSON));
+                    new XContentServerSource(indexRequest.source(), XContentType.JSON));
         }
 
         IndexResponse response = ClientHelper.executeWithHeaders(ctx.watch().status().getHeaders(), ClientHelper.WATCHER_ORIGIN, client,
@@ -102,10 +102,10 @@ public class ExecutableIndexAction extends ExecutableAction<IndexAction> {
             indexResponseToXContent(builder, response);
             bytesReference = BytesReference.bytes(builder);
         }
-        return new IndexAction.Result(Status.SUCCESS, new XContentSource(bytesReference, XContentType.JSON));
+        return new IndexAction.Result(Status.SUCCESS, new XContentServerSource(bytesReference, XContentType.JSON));
     }
 
-    Action.Result indexBulk(Iterable list, String actionId, WatchExecutionContext ctx) throws Exception {
+    ActionResult indexBulk(Iterable list, String actionId, WatchExecutionContext ctx) throws Exception {
         if (action.docId != null) {
             throw illegalState("could not execute action [{}] of watch [{}]. [doc_id] cannot be used with bulk [_doc] indexing");
         }
@@ -148,12 +148,14 @@ public class ExecutableIndexAction extends ExecutableAction<IndexAction> {
             // different error states, depending on how successful the bulk operation was
             long failures = Stream.of(bulkResponse.getItems()).filter(BulkItemResponse::isFailed).count();
             if (failures == 0) {
-                return new IndexAction.Result(Status.SUCCESS, new XContentSource(BytesReference.bytes(jsonBuilder), XContentType.JSON));
+                return new IndexAction.Result(Status.SUCCESS, new XContentServerSource(BytesReference.bytes(jsonBuilder),
+                    XContentType.JSON));
             } else if (failures == bulkResponse.getItems().length) {
-                return new IndexAction.Result(Status.FAILURE, new XContentSource(BytesReference.bytes(jsonBuilder), XContentType.JSON));
+                return new IndexAction.Result(Status.FAILURE, new XContentServerSource(BytesReference.bytes(jsonBuilder),
+                    XContentType.JSON));
             } else {
                 return new IndexAction.Result(Status.PARTIAL_FAILURE,
-                        new XContentSource(BytesReference.bytes(jsonBuilder), XContentType.JSON));
+                        new XContentServerSource(BytesReference.bytes(jsonBuilder), XContentType.JSON));
             }
         }
     }

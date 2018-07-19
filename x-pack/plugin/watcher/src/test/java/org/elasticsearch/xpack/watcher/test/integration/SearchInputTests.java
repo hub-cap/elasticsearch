@@ -33,7 +33,7 @@ import org.elasticsearch.search.internal.InternalSearchResponse;
 import org.elasticsearch.test.ESTestCase;
 import org.elasticsearch.threadpool.ThreadPool;
 import org.elasticsearch.xpack.core.watcher.execution.WatchExecutionContext;
-import org.elasticsearch.xpack.core.watcher.input.Input;
+import org.elasticsearch.xpack.core.watcher.input.InputResult;
 import org.elasticsearch.xpack.core.watcher.watch.Payload;
 import org.elasticsearch.xpack.watcher.Watcher;
 import org.elasticsearch.xpack.watcher.input.search.ExecutableSearchInput;
@@ -106,7 +106,7 @@ public class SearchInputTests extends ESTestCase {
 
         SearchInput.Result result = searchInput.execute(ctx, new Payload.Simple());
 
-        assertThat(result.status(), is(Input.Result.Status.SUCCESS));
+        assertThat(result.status(), is(InputResult.Status.SUCCESS));
         SearchRequest searchRequest = requestCaptor.getValue();
         assertThat(searchRequest.searchType(), is(request.getSearchType()));
         assertThat(searchRequest.indicesOptions(), is(request.getIndicesOptions()));
@@ -131,7 +131,7 @@ public class SearchInputTests extends ESTestCase {
         WatchExecutionContext ctx = WatcherTestUtils.createWatchExecutionContext(logger);
         SearchInput.Result result = searchInput.execute(ctx, new Payload.Simple());
 
-        assertThat(result.status(), is(Input.Result.Status.SUCCESS));
+        assertThat(result.status(), is(InputResult.Status.SUCCESS));
         SearchRequest searchRequest = requestCaptor.getValue();
         assertThat(searchRequest.searchType(), is(request.getSearchType()));
         assertThat(searchRequest.indicesOptions(), is(request.getIndicesOptions()));
@@ -180,7 +180,7 @@ public class SearchInputTests extends ESTestCase {
             ExecutableSearchInput executableSearchInput = factory.createExecutable(input);
             WatchExecutionContext ctx = WatcherTestUtils.createWatchExecutionContext(logger);
             SearchInput.Result result = executableSearchInput.execute(ctx, Payload.Simple.EMPTY);
-            assertThat(result.status(), is(Input.Result.Status.SUCCESS));
+            assertThat(result.status(), is(InputResult.Status.SUCCESS));
             // no body in the search request
             ToXContent.Params params = new ToXContent.MapParams(Collections.singletonMap("pretty", "false"));
             assertThat(requestCaptor.getValue().source().toString(params), is("{}"));

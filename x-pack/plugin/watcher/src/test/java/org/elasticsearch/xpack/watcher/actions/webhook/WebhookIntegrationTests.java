@@ -15,7 +15,7 @@ import org.elasticsearch.test.http.MockResponse;
 import org.elasticsearch.test.http.MockWebServer;
 import org.elasticsearch.transport.Netty4Plugin;
 import org.elasticsearch.xpack.core.watcher.history.WatchRecord;
-import org.elasticsearch.xpack.core.watcher.support.xcontent.XContentSource;
+import org.elasticsearch.xpack.core.watcher.support.xcontent.XContentServerSource;
 import org.elasticsearch.xpack.watcher.actions.ActionBuilders;
 import org.elasticsearch.xpack.watcher.common.http.HttpMethod;
 import org.elasticsearch.xpack.watcher.common.http.HttpRequestTemplate;
@@ -100,7 +100,7 @@ public class WebhookIntegrationTests extends AbstractWatcherIntegrationTestCase 
         SearchResponse response = searchWatchRecords(b -> QueryBuilders.termQuery(WatchRecord.STATE.getPreferredName(), "executed"));
 
         assertNoFailures(response);
-        XContentSource source = xContentSource(response.getHits().getAt(0).getSourceRef());
+        XContentServerSource source = xContentSource(response.getHits().getAt(0).getSourceRef());
         String body = source.getValue("result.actions.0.webhook.response.body");
         assertThat(body, notNullValue());
         assertThat(body, is("body"));

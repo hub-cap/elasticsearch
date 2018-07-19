@@ -10,6 +10,7 @@ import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentParser;
 import org.elasticsearch.script.Script;
 import org.elasticsearch.xpack.core.watcher.transform.Transform;
+import org.elasticsearch.xpack.core.watcher.transform.TransformResult;
 import org.elasticsearch.xpack.core.watcher.watch.Payload;
 
 import java.io.IOException;
@@ -67,7 +68,7 @@ public class ScriptTransform implements Transform {
         return new Builder(script);
     }
 
-    public static class Result extends Transform.Result {
+    public static class Result extends TransformResult {
 
         public Result(Payload payload) {
             super(TYPE, payload);

@@ -12,6 +12,7 @@ import org.elasticsearch.common.ParseField;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentParser;
 import org.elasticsearch.xpack.core.watcher.actions.Action;
+import org.elasticsearch.xpack.core.watcher.actions.ActionResult;
 import org.elasticsearch.xpack.watcher.common.http.HttpProxy;
 import org.elasticsearch.xpack.watcher.notification.jira.JiraIssue;
 
@@ -109,7 +110,7 @@ public class JiraAction implements Action {
         return new JiraAction(account, fields, proxy);
     }
 
-    public static class Executed extends Action.Result {
+    public static class Executed extends ActionResult {
 
         private final JiraIssue result;
 
@@ -128,7 +129,7 @@ public class JiraAction implements Action {
         }
     }
 
-    static class Simulated extends Action.Result {
+    static class Simulated extends ActionResult {
 
         private final Map<String, Object> fields;
 

@@ -6,6 +6,7 @@
 package org.elasticsearch.xpack.core.watcher.watch;
 
 import org.elasticsearch.common.Nullable;
+import org.elasticsearch.common.ParseField;
 import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.common.xcontent.ToXContentObject;
 import org.elasticsearch.common.xcontent.XContentBuilder;
@@ -23,9 +24,11 @@ import java.util.Map;
 
 public class Watch implements ToXContentObject {
 
-    public static final String INCLUDE_STATUS_KEY = "include_status";
     public static final String INDEX = ".watches";
     public static final String DOC_TYPE = "doc";
+    public static final ParseField STATUS = new ParseField("status");
+    public static final ParseField VERSION = new ParseField("_version");
+    public static final String ALL_ACTIONS_ID = "_all";
 
     private final String id;
     private final Trigger trigger;
@@ -154,8 +157,8 @@ public class Watch implements ToXContentObject {
         if (metadata != null) {
             builder.field(WatchField.METADATA.getPreferredName(), metadata);
         }
-        if (params.paramAsBoolean(INCLUDE_STATUS_KEY, false)) {
-            builder.field(WatchField.STATUS.getPreferredName(), status, params);
+        if (params.paramAsBoolean(WatchField.INCLUDE_STATUS_KEY, false)) {
+            builder.field(STATUS.getPreferredName(), status, params);
         }
         builder.endObject();
         return builder;

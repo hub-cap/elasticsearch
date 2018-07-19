@@ -12,7 +12,7 @@ import org.elasticsearch.common.Strings;
 import org.elasticsearch.common.collect.MapBuilder;
 import org.elasticsearch.common.xcontent.ToXContentObject;
 import org.elasticsearch.common.xcontent.XContentBuilder;
-import org.elasticsearch.xpack.core.watcher.actions.Action;
+import org.elasticsearch.xpack.core.watcher.actions.ActionResult;
 import org.elasticsearch.xpack.core.watcher.actions.ActionWrapperResult;
 import org.elasticsearch.xpack.core.watcher.condition.ExecutableCondition;
 import org.elasticsearch.xpack.core.watcher.execution.ExecutionState;
@@ -107,9 +107,9 @@ public abstract class WatchRecord implements ToXContentObject {
         if (executionResult.conditionResult().met()) {
             final Collection<ActionWrapperResult> values = executionResult.actionsResults().values();
             // acknowledged as state wins because the user had explicitely set this, where as throttled may happen due to execution
-            if (values.stream().anyMatch((r) -> r.action().status() == Action.Result.Status.ACKNOWLEDGED)) {
+            if (values.stream().anyMatch((r) -> r.action().status() == ActionResult.Status.ACKNOWLEDGED)) {
                 return ExecutionState.ACKNOWLEDGED;
-            } else if (values.stream().anyMatch((r) -> r.action().status() == Action.Result.Status.THROTTLED)) {
+            } else if (values.stream().anyMatch((r) -> r.action().status() == ActionResult.Status.THROTTLED)) {
                 return ExecutionState.THROTTLED;
             } else {
                 return ExecutionState.EXECUTED;

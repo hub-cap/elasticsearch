@@ -11,7 +11,7 @@ import org.elasticsearch.action.ValidateActions;
 import org.elasticsearch.common.io.stream.StreamInput;
 import org.elasticsearch.common.io.stream.StreamOutput;
 import org.elasticsearch.common.lucene.uid.Versions;
-import org.elasticsearch.xpack.core.watcher.support.WatcherUtils;
+import org.elasticsearch.xpack.core.watcher.support.WatcherServerUtils;
 
 import java.io.IOException;
 
@@ -50,7 +50,7 @@ public class DeleteWatchRequest extends ActionRequest {
         ActionRequestValidationException validationException = null;
         if (id == null){
             validationException = ValidateActions.addValidationError("watch id is missing", validationException);
-        } else if (WatcherUtils.isValidId(id) == false) {
+        } else if (WatcherServerUtils.isValidId(id) == false) {
             validationException = ValidateActions.addValidationError("watch id contains whitespace", validationException);
         }
         return validationException;

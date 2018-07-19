@@ -9,7 +9,7 @@ import org.elasticsearch.ElasticsearchParseException;
 import org.elasticsearch.common.xcontent.XContentParser;
 import org.elasticsearch.license.XPackLicenseState;
 import org.elasticsearch.xpack.core.watcher.condition.ConditionRegistry;
-import org.elasticsearch.xpack.core.watcher.support.WatcherUtils;
+import org.elasticsearch.xpack.core.watcher.support.WatcherServerUtils;
 import org.elasticsearch.xpack.core.watcher.transform.TransformRegistry;
 
 import java.io.IOException;
@@ -53,7 +53,7 @@ public class ActionRegistry {
         while ((token = parser.nextToken()) != XContentParser.Token.END_OBJECT) {
             if (token == XContentParser.Token.FIELD_NAME) {
                 id = parser.currentName();
-                if (WatcherUtils.isValidId(id) == false) {
+                if (WatcherServerUtils.isValidId(id) == false) {
                     throw new ElasticsearchParseException("could not parse action [{}] for watch [{}]. id contains whitespace", id,
                             watchId);
                 }

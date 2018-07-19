@@ -10,7 +10,7 @@ import org.elasticsearch.common.bytes.BytesReference;
 import org.elasticsearch.common.io.stream.StreamInput;
 import org.elasticsearch.common.io.stream.StreamOutput;
 import org.elasticsearch.common.xcontent.XContentType;
-import org.elasticsearch.xpack.core.watcher.support.xcontent.XContentSource;
+import org.elasticsearch.xpack.core.watcher.support.xcontent.XContentServerSource;
 
 import java.io.IOException;
 
@@ -20,14 +20,14 @@ import java.io.IOException;
 public class ExecuteWatchResponse extends ActionResponse {
 
     private String recordId;
-    private XContentSource recordSource;
+    private XContentServerSource recordSource;
 
     public ExecuteWatchResponse() {
     }
 
     public ExecuteWatchResponse(String recordId, BytesReference recordSource, XContentType contentType) {
         this.recordId = recordId;
-        this.recordSource = new XContentSource(recordSource, contentType);
+        this.recordSource = new XContentServerSource(recordSource, contentType);
     }
 
     /**
@@ -40,7 +40,7 @@ public class ExecuteWatchResponse extends ActionResponse {
     /**
      * @return The watch record source
      */
-    public XContentSource getRecordSource() {
+    public XContentServerSource getRecordSource() {
         return recordSource;
     }
 
@@ -48,13 +48,13 @@ public class ExecuteWatchResponse extends ActionResponse {
     public void readFrom(StreamInput in) throws IOException {
         super.readFrom(in);
         recordId = in.readString();
-        recordSource = XContentSource.readFrom(in);
+        recordSource = XContentServerSource.readFrom(in);
     }
 
     @Override
     public void writeTo(StreamOutput out) throws IOException {
         super.writeTo(out);
         out.writeString(recordId);
-        XContentSource.writeTo(recordSource, out);
+        XContentServerSource.writeTo(recordSource, out);
     }
 }

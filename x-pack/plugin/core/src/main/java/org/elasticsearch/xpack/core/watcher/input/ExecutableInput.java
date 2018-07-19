@@ -14,7 +14,7 @@ import org.elasticsearch.xpack.core.watcher.watch.Payload;
 
 import java.io.IOException;
 
-public abstract class ExecutableInput<I extends Input, R extends Input.Result> implements ToXContentObject {
+public abstract class ExecutableInput<I extends Input, R extends InputResult> implements ToXContentObject {
 
     protected final I input;
     protected final Logger logger;

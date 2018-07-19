@@ -17,7 +17,7 @@ import org.elasticsearch.xpack.core.watcher.client.WatcherClient;
 import org.elasticsearch.xpack.core.watcher.support.xcontent.WatcherParams;
 import org.elasticsearch.xpack.core.watcher.transport.actions.ack.AckWatchRequest;
 import org.elasticsearch.xpack.core.watcher.transport.actions.ack.AckWatchResponse;
-import org.elasticsearch.xpack.core.watcher.watch.WatchField;
+import org.elasticsearch.xpack.core.watcher.watch.Watch;
 import org.elasticsearch.xpack.watcher.rest.WatcherRestHandler;
 
 import java.io.IOException;
@@ -54,7 +54,7 @@ public class RestAckWatchAction extends WatcherRestHandler {
             @Override
             public RestResponse buildResponse(AckWatchResponse response, XContentBuilder builder) throws Exception {
                 return new BytesRestResponse(RestStatus.OK, builder.startObject()
-                        .field(WatchField.STATUS.getPreferredName(), response.getStatus(), WatcherParams.HIDE_SECRETS)
+                        .field(Watch.STATUS.getPreferredName(), response.getStatus(), WatcherParams.HIDE_SECRETS)
                         .endObject());
 
             }

@@ -10,7 +10,7 @@ import org.elasticsearch.common.xcontent.XContentParser;
 
 import java.io.IOException;
 
-public abstract class TransformFactory<T extends Transform, R extends Transform.Result, E extends ExecutableTransform<T, R>> {
+public abstract class TransformFactory<T extends Transform, R extends TransformResult, E extends ExecutableTransform<T, R>> {
 
     protected final Logger transformLogger;
 

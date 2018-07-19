@@ -9,7 +9,7 @@ import org.elasticsearch.action.admin.indices.get.GetIndexResponse;
 import org.elasticsearch.index.IndexNotFoundException;
 import org.elasticsearch.protocol.xpack.watcher.PutWatchResponse;
 import org.elasticsearch.test.junit.annotations.TestLogging;
-import org.elasticsearch.xpack.core.watcher.support.xcontent.XContentSource;
+import org.elasticsearch.xpack.core.watcher.support.xcontent.XContentServerSource;
 import org.elasticsearch.xpack.core.watcher.transport.actions.get.GetWatchRequest;
 import org.elasticsearch.xpack.core.watcher.transport.actions.get.GetWatchResponse;
 import org.elasticsearch.xpack.core.watcher.watch.Watch;
@@ -79,7 +79,7 @@ public class GetWatchTests extends AbstractWatcherIntegrationTestCase {
         assertThat(getResponse.isFound(), is(false));
         assertThat(getResponse.getStatus(), nullValue());
         assertThat(getResponse.getSource(), nullValue());
-        XContentSource source = getResponse.getSource();
+        XContentServerSource source = getResponse.getSource();
         assertThat(source, nullValue());
     }
 }

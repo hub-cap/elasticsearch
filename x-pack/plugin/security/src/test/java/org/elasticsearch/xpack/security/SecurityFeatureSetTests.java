@@ -20,7 +20,7 @@ import org.elasticsearch.xpack.core.XPackField;
 import org.elasticsearch.xpack.core.XPackSettings;
 import org.elasticsearch.xpack.core.security.SecurityFeatureSetUsage;
 import org.elasticsearch.xpack.core.security.user.AnonymousUser;
-import org.elasticsearch.xpack.core.watcher.support.xcontent.XContentSource;
+import org.elasticsearch.xpack.core.watcher.support.xcontent.XContentServerSource;
 import org.elasticsearch.xpack.security.authc.Realms;
 import org.elasticsearch.xpack.security.authc.support.mapper.NativeRoleMappingStore;
 import org.elasticsearch.xpack.security.authz.store.CompositeRolesStore;
@@ -170,10 +170,10 @@ public class SecurityFeatureSetTests extends ESTestCase {
             assertThat(usage.name(), is(XPackField.SECURITY));
             assertThat(usage.enabled(), is(enabled));
             assertThat(usage.available(), is(authcAuthzAvailable));
-            XContentSource source;
+            XContentServerSource source;
             try (XContentBuilder builder = XContentFactory.jsonBuilder()) {
                 usage.toXContent(builder, ToXContent.EMPTY_PARAMS);
-                source = new XContentSource(builder);
+                source = new XContentServerSource(builder);
             }
 
             if (enabled) {

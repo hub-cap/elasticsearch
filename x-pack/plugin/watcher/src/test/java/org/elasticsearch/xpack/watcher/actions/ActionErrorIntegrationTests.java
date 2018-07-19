@@ -9,7 +9,7 @@ import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.protocol.xpack.watcher.PutWatchResponse;
-import org.elasticsearch.xpack.core.watcher.support.xcontent.XContentSource;
+import org.elasticsearch.xpack.core.watcher.support.xcontent.XContentServerSource;
 import org.elasticsearch.xpack.core.watcher.transport.actions.get.GetWatchResponse;
 import org.elasticsearch.xpack.watcher.actions.index.IndexAction;
 import org.elasticsearch.xpack.watcher.test.AbstractWatcherIntegrationTestCase;
@@ -74,7 +74,7 @@ public class ActionErrorIntegrationTests extends AbstractWatcherIntegrationTestC
 
         // now lets confirm that the ack status of the action is awaits_successful_execution
         GetWatchResponse getWatchResponse = watcherClient().prepareGetWatch("_id").get();
-        XContentSource watch = getWatchResponse.getSource();
+        XContentServerSource watch = getWatchResponse.getSource();
         watch.getValue("status.actions._action.ack.awaits_successful_execution");
     }
 }

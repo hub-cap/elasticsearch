@@ -17,7 +17,7 @@ import org.elasticsearch.script.ScriptService;
 import org.elasticsearch.script.ScriptType;
 import org.elasticsearch.test.ESTestCase;
 import org.elasticsearch.xpack.core.watcher.execution.WatchExecutionContext;
-import org.elasticsearch.xpack.core.watcher.transform.Transform;
+import org.elasticsearch.xpack.core.watcher.transform.TransformResult;
 import org.elasticsearch.xpack.core.watcher.watch.Payload;
 import org.elasticsearch.xpack.watcher.Watcher;
 import org.elasticsearch.xpack.watcher.support.Variables;
@@ -65,10 +65,10 @@ public class ScriptTransformTests extends ESTestCase {
         when(executable.run()).thenReturn(transformed);
         when(factory.newInstance(model)).thenReturn(executable);
 
-        Transform.Result result = transform.execute(ctx, payload);
+        TransformResult result = transform.execute(ctx, payload);
         assertThat(result, notNullValue());
         assertThat(result.type(), is(ScriptTransform.TYPE));
-        assertThat(result.status(), is(Transform.Result.Status.SUCCESS));
+        assertThat(result.status(), is(TransformResult.Status.SUCCESS));
         assertThat(result.payload().data(), equalTo(transformed));
     }
 
@@ -91,10 +91,10 @@ public class ScriptTransformTests extends ESTestCase {
         when(executable.run()).thenThrow(new RuntimeException("_error"));
         when(factory.newInstance(model)).thenReturn(executable);
 
-        Transform.Result result = transform.execute(ctx, payload);
+        TransformResult result = transform.execute(ctx, payload);
         assertThat(result, notNullValue());
         assertThat(result.type(), is(ScriptTransform.TYPE));
-        assertThat(result.status(), is(Transform.Result.Status.FAILURE));
+        assertThat(result.status(), is(TransformResult.Status.FAILURE));
         assertThat(result.reason(), containsString("_error"));
     }
 
@@ -118,7 +118,7 @@ public class ScriptTransformTests extends ESTestCase {
         when(executable.run()).thenReturn(value);
         when(factory.newInstance(model)).thenReturn(executable);
 
-        Transform.Result result = transform.execute(ctx, payload);
+        TransformResult result = transform.execute(ctx, payload);
         assertThat(result, notNullValue());
         assertThat(result.type(), is(ScriptTransform.TYPE));
         assertThat(result.payload().data().size(), is(1));

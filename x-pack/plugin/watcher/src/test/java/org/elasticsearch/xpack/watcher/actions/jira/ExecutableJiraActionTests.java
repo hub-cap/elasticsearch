@@ -9,7 +9,7 @@ import org.elasticsearch.common.collect.MapBuilder;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.script.ScriptService;
 import org.elasticsearch.test.ESTestCase;
-import org.elasticsearch.xpack.core.watcher.actions.Action;
+import org.elasticsearch.xpack.core.watcher.actions.ActionResult;
 import org.elasticsearch.xpack.core.watcher.execution.WatchExecutionContext;
 import org.elasticsearch.xpack.core.watcher.execution.Wid;
 import org.elasticsearch.xpack.core.watcher.watch.Payload;
@@ -279,8 +279,8 @@ public class ExecutableJiraActionTests extends ESTestCase {
         WatchExecutionContext context = createWatchExecutionContext();
         when(context.simulateAction("test")).thenReturn(true);
 
-        Action.Result result = executable.execute("test", context, new Payload.Simple());
-        assertThat(result, instanceOf(JiraAction.Result.class));
+        ActionResult result = executable.execute("test", context, new Payload.Simple());
+        assertThat(result, instanceOf(ActionResult.class));
         assertThat(result, instanceOf(JiraAction.Simulated.class));
         return (JiraAction.Simulated) result;
     }

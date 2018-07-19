@@ -76,16 +76,16 @@ public class ActionStatus implements ToXContentObject {
         return Objects.hash(ackStatus, lastExecution, lastSuccessfulExecution, lastThrottle);
     }
 
-    public void update(DateTime timestamp, Action.Result result) {
+    public void update(DateTime timestamp, ActionResult result) {
         switch (result.status()) {
 
             case FAILURE:
-                String reason = result instanceof Action.Result.Failure ? ((Action.Result.Failure) result).reason() : "";
+                String reason = result instanceof ActionResult.Failure ? ((ActionResult.Failure) result).reason() : "";
                 lastExecution = Execution.failure(timestamp, reason);
                 return;
 
             case THROTTLED:
-                reason = result instanceof Action.Result.Throttled ? ((Action.Result.Throttled) result).reason() : "";
+                reason = result instanceof ActionResult.Throttled ? ((ActionResult.Throttled) result).reason() : "";
                 lastThrottle = new Throttle(timestamp, reason);
                 return;
 

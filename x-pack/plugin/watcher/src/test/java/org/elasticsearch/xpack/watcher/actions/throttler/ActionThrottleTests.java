@@ -12,7 +12,8 @@ import org.elasticsearch.common.xcontent.XContentFactory;
 import org.elasticsearch.common.xcontent.XContentType;
 import org.elasticsearch.protocol.xpack.watcher.PutWatchRequest;
 import org.elasticsearch.xpack.core.watcher.actions.Action;
-import org.elasticsearch.xpack.core.watcher.client.WatchSourceBuilder;
+import org.elasticsearch.protocol.xpack.watcher.client.WatchSourceBuilder;
+import org.elasticsearch.xpack.core.watcher.actions.ActionResult;
 import org.elasticsearch.xpack.core.watcher.execution.ActionExecutionMode;
 import org.elasticsearch.xpack.core.watcher.execution.ExecutionState;
 import org.elasticsearch.xpack.core.watcher.support.xcontent.ObjectPath;
@@ -70,7 +71,7 @@ public class ActionThrottleTests extends AbstractWatcherIntegrationTestCase {
 
         Map<String, Object> responseMap = executeWatchRequestBuilder.get().getRecordSource().getAsMap();
         String status = ObjectPath.eval("result.actions.0.status", responseMap);
-        assertThat(status, equalTo(Action.Result.Status.SIMULATED.toString().toLowerCase(Locale.ROOT)));
+        assertThat(status, equalTo(ActionResult.Status.SIMULATED.toString().toLowerCase(Locale.ROOT)));
 
         timeWarp().clock().fastForward(TimeValue.timeValueSeconds(15));
 
@@ -85,9 +86,9 @@ public class ActionThrottleTests extends AbstractWatcherIntegrationTestCase {
         responseMap = executeWatchRequestBuilder.get().getRecordSource().getAsMap();
         status = ObjectPath.eval("result.actions.0.status", responseMap);
         if (ack) {
-            assertThat(status, equalTo(Action.Result.Status.ACKNOWLEDGED.toString().toLowerCase(Locale.ROOT)));
+            assertThat(status, equalTo(ActionResult.Status.ACKNOWLEDGED.toString().toLowerCase(Locale.ROOT)));
         } else {
-            assertThat(status, equalTo(Action.Result.Status.SIMULATED.toString().toLowerCase(Locale.ROOT)));
+            assertThat(status, equalTo(ActionResult.Status.SIMULATED.toString().toLowerCase(Locale.ROOT)));
         }
     }
 
@@ -120,9 +121,9 @@ public class ActionThrottleTests extends AbstractWatcherIntegrationTestCase {
         List<Map<String, String>> actions = ObjectPath.eval("result.actions", responseMap);
         for (Map<String, String> result : actions) {
             if (ackingActions.contains(result.get("id"))) {
-                assertThat(result.get("status"), equalTo(Action.Result.Status.ACKNOWLEDGED.toString().toLowerCase(Locale.ROOT)));
+                assertThat(result.get("status"), equalTo(ActionResult.Status.ACKNOWLEDGED.toString().toLowerCase(Locale.ROOT)));
             } else {
-                assertThat(result.get("status"), equalTo(Action.Result.Status.SIMULATED.toString().toLowerCase(Locale.ROOT)));
+                assertThat(result.get("status"), equalTo(ActionResult.Status.SIMULATED.toString().toLowerCase(Locale.ROOT)));
             }
         }
     }
@@ -151,14 +152,14 @@ public class ActionThrottleTests extends AbstractWatcherIntegrationTestCase {
         Map<String, Object> responseMap = executeWatch("_id");
         List<Map<String, String>> actions = ObjectPath.eval("result.actions", responseMap);
         for (Map<String, String> result : actions) {
-            assertThat(result.get("status"), equalTo(Action.Result.Status.SIMULATED.toString().toLowerCase(Locale.ROOT)));
+            assertThat(result.get("status"), equalTo(ActionResult.Status.SIMULATED.toString().toLowerCase(Locale.ROOT)));
         }
         timeWarp().clock().fastForwardSeconds(1);
 
         responseMap = executeWatch("_id");
         actions = ObjectPath.eval("result.actions", responseMap);
         for (Map<String, String> result : actions) {
-            assertThat(result.get("status"), equalTo(Action.Result.Status.THROTTLED.toString().toLowerCase(Locale.ROOT)));
+            assertThat(result.get("status"), equalTo(ActionResult.Status.THROTTLED.toString().toLowerCase(Locale.ROOT)));
         }
 
         timeWarp().clock().fastForwardSeconds(10);
@@ -167,9 +168,9 @@ public class ActionThrottleTests extends AbstractWatcherIntegrationTestCase {
         actions = ObjectPath.eval("result.actions", responseMap);
         for (Map<String, String> result : actions) {
             if ("ten_sec_throttle".equals(result.get("id"))) {
-                assertThat(result.get("status"), equalTo(Action.Result.Status.SIMULATED.toString().toLowerCase(Locale.ROOT)));
+                assertThat(result.get("status"), equalTo(ActionResult.Status.SIMULATED.toString().toLowerCase(Locale.ROOT)));
             } else {
-                assertThat(result.get("status"), equalTo(Action.Result.Status.THROTTLED.toString().toLowerCase(Locale.ROOT)));
+                assertThat(result.get("status"), equalTo(ActionResult.Status.THROTTLED.toString().toLowerCase(Locale.ROOT)));
             }
         }
     }
@@ -323,8 +324,8 @@ public class ActionThrottleTests extends AbstractWatcherIntegrationTestCase {
             }
 
             assertThat(state, equalTo(ExecutionState.EXECUTED.toString().toLowerCase(Locale.ROOT)));
-            assertThat(statusLogging, equalTo(Action.Result.Status.SUCCESS.toString().toLowerCase(Locale.ROOT)));
-            assertThat(statusFailingHook, equalTo(Action.Result.Status.FAILURE.toString().toLowerCase(Locale.ROOT)));
+            assertThat(statusLogging, equalTo(ActionResult.Status.SUCCESS.toString().toLowerCase(Locale.ROOT)));
+            assertThat(statusFailingHook, equalTo(ActionResult.Status.FAILURE.toString().toLowerCase(Locale.ROOT)));
         }
 
         {
@@ -344,8 +345,8 @@ public class ActionThrottleTests extends AbstractWatcherIntegrationTestCase {
             }
 
             assertThat(state, equalTo(ExecutionState.THROTTLED.toString().toLowerCase(Locale.ROOT)));
-            assertThat(statusLogging, equalTo(Action.Result.Status.THROTTLED.toString().toLowerCase(Locale.ROOT)));
-            assertThat(statusFailingHook, equalTo(Action.Result.Status.FAILURE.toString().toLowerCase(Locale.ROOT)));
+            assertThat(statusLogging, equalTo(ActionResult.Status.THROTTLED.toString().toLowerCase(Locale.ROOT)));
+            assertThat(statusFailingHook, equalTo(ActionResult.Status.FAILURE.toString().toLowerCase(Locale.ROOT)));
         }
     }
 

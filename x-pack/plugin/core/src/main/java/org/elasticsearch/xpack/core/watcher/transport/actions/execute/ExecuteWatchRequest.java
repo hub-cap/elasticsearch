@@ -13,9 +13,9 @@ import org.elasticsearch.common.bytes.BytesReference;
 import org.elasticsearch.common.io.stream.StreamInput;
 import org.elasticsearch.common.io.stream.StreamOutput;
 import org.elasticsearch.common.xcontent.XContentType;
-import org.elasticsearch.xpack.core.watcher.client.WatchSourceBuilder;
+import org.elasticsearch.protocol.xpack.watcher.client.WatchSourceBuilder;
 import org.elasticsearch.xpack.core.watcher.execution.ActionExecutionMode;
-import org.elasticsearch.xpack.core.watcher.support.WatcherUtils;
+import org.elasticsearch.xpack.core.watcher.support.WatcherServerUtils;
 import org.elasticsearch.xpack.core.watcher.trigger.TriggerEvent;
 
 import java.io.IOException;
@@ -246,14 +246,14 @@ public class ExecuteWatchRequest extends ActionRequest {
             validationException = ValidateActions.addValidationError("a watch execution request must either have a watch id or an inline " +
                     "watch source, but both are missing", validationException);
         }
-        if (id != null && WatcherUtils.isValidId(id) == false) {
+        if (id != null && WatcherServerUtils.isValidId(id) == false) {
             validationException = ValidateActions.addValidationError("watch id contains whitespace", validationException);
         }
         for (String actionId : actionModes.keySet()) {
             if (actionId == null) {
                 validationException = ValidateActions.addValidationError(
                         String.format(Locale.ROOT, "action id may not be null"), validationException);
-            } else if (WatcherUtils.isValidId(actionId) == false) {
+            } else if (WatcherServerUtils.isValidId(actionId) == false) {
                 validationException = ValidateActions.addValidationError(
                         String.format(Locale.ROOT, "action id [%s] contains whitespace", actionId), validationException);
             }

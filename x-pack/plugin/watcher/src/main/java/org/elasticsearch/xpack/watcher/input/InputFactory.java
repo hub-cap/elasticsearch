@@ -9,13 +9,14 @@ import org.apache.logging.log4j.Logger;
 import org.elasticsearch.common.xcontent.XContentParser;
 import org.elasticsearch.xpack.core.watcher.input.ExecutableInput;
 import org.elasticsearch.xpack.core.watcher.input.Input;
+import org.elasticsearch.xpack.core.watcher.input.InputResult;
 
 import java.io.IOException;
 
 /**
  * Parses xcontent to a concrete input of the same type.
  */
-public abstract class InputFactory<I extends Input, R extends Input.Result, E extends ExecutableInput<I, R>> {
+public abstract class InputFactory<I extends Input, R extends InputResult, E extends ExecutableInput<I, R>> {
 
     protected final Logger inputLogger;
 

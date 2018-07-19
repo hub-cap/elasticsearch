@@ -13,6 +13,7 @@ import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentParser;
 import org.elasticsearch.xpack.core.watcher.support.WatcherDateTimeUtils;
 import org.elasticsearch.xpack.core.watcher.transform.Transform;
+import org.elasticsearch.xpack.core.watcher.transform.TransformResult;
 import org.elasticsearch.xpack.core.watcher.watch.Payload;
 import org.elasticsearch.xpack.watcher.support.search.WatcherSearchTemplateRequest;
 import org.joda.time.DateTimeZone;
@@ -134,7 +135,7 @@ public class SearchTransform implements Transform {
         return new Builder(request);
     }
 
-    public static class Result extends Transform.Result {
+    public static class Result extends TransformResult {
 
         @Nullable private final WatcherSearchTemplateRequest request;
 

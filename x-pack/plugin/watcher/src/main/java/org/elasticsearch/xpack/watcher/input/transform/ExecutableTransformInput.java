@@ -9,7 +9,7 @@ import org.apache.logging.log4j.Logger;
 import org.elasticsearch.xpack.core.watcher.execution.WatchExecutionContext;
 import org.elasticsearch.xpack.core.watcher.input.ExecutableInput;
 import org.elasticsearch.xpack.core.watcher.transform.ExecutableTransform;
-import org.elasticsearch.xpack.core.watcher.transform.Transform;
+import org.elasticsearch.xpack.core.watcher.transform.TransformResult;
 import org.elasticsearch.xpack.core.watcher.watch.Payload;
 
 public final class ExecutableTransformInput extends ExecutableInput<TransformInput, TransformInput.Result> {
@@ -23,7 +23,7 @@ public final class ExecutableTransformInput extends ExecutableInput<TransformInp
 
     @Override
     public TransformInput.Result execute(WatchExecutionContext ctx, Payload payload) {
-        Transform.Result transformResult = executableTransform.execute(ctx, payload);
+        TransformResult transformResult = executableTransform.execute(ctx, payload);
         return new TransformInput.Result(transformResult.payload());
     }
 }

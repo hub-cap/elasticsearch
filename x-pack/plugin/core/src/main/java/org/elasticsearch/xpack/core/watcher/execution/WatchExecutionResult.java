@@ -10,10 +10,11 @@ import org.elasticsearch.common.ParseField;
 import org.elasticsearch.common.xcontent.ToXContentObject;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.xpack.core.watcher.actions.ActionWrapperResult;
-import org.elasticsearch.xpack.core.watcher.condition.Condition;
-import org.elasticsearch.xpack.core.watcher.input.Input;
+import org.elasticsearch.xpack.core.watcher.condition.ConditionResult;
+import org.elasticsearch.xpack.core.watcher.input.InputResult;
 import org.elasticsearch.xpack.core.watcher.support.WatcherDateTimeUtils;
 import org.elasticsearch.xpack.core.watcher.transform.Transform;
+import org.elasticsearch.xpack.core.watcher.transform.TransformResult;
 import org.joda.time.DateTime;
 
 import java.io.IOException;
@@ -23,9 +24,9 @@ public class WatchExecutionResult implements ToXContentObject {
 
     private final DateTime executionTime;
     private final long executionDurationMs;
-    @Nullable private final Input.Result inputResult;
-    @Nullable private final Condition.Result conditionResult;
-    @Nullable private final Transform.Result transformResult;
+    @Nullable private final InputResult inputResult;
+    @Nullable private final ConditionResult conditionResult;
+    @Nullable private final TransformResult transformResult;
     private final Map<String, ActionWrapperResult> actionsResults;
 
     public WatchExecutionResult(WatchExecutionContext context, long executionDurationMs) {
@@ -33,8 +34,8 @@ public class WatchExecutionResult implements ToXContentObject {
                 context.actionsResults());
     }
 
-    private WatchExecutionResult(DateTime executionTime, long executionDurationMs, Input.Result inputResult,
-                                 Condition.Result conditionResult, @Nullable Transform.Result transformResult,
+    private WatchExecutionResult(DateTime executionTime, long executionDurationMs, InputResult inputResult,
+                                 ConditionResult conditionResult, @Nullable TransformResult transformResult,
                                  Map<String, ActionWrapperResult> actionsResults) {
         this.executionTime = executionTime;
         this.inputResult = inputResult;
@@ -52,15 +53,15 @@ public class WatchExecutionResult implements ToXContentObject {
         return executionDurationMs;
     }
 
-    public Input.Result inputResult() {
+    public InputResult inputResult() {
         return inputResult;
     }
 
-    public Condition.Result conditionResult() {
+    public ConditionResult conditionResult() {
         return conditionResult;
     }
 
-    public Transform.Result transformResult() {
+    public TransformResult transformResult() {
         return transformResult;
     }
 

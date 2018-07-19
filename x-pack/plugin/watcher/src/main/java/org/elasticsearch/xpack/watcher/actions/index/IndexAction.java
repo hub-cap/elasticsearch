@@ -13,8 +13,9 @@ import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentParser;
 import org.elasticsearch.xpack.core.watcher.actions.Action;
+import org.elasticsearch.xpack.core.watcher.actions.ActionResult;
 import org.elasticsearch.xpack.core.watcher.support.WatcherDateTimeUtils;
-import org.elasticsearch.xpack.core.watcher.support.xcontent.XContentSource;
+import org.elasticsearch.xpack.core.watcher.support.xcontent.XContentServerSource;
 import org.joda.time.DateTimeZone;
 
 import java.io.IOException;
@@ -185,16 +186,16 @@ public class IndexAction implements Action {
         return new Builder(index, docType);
     }
 
-    public static class Result extends Action.Result {
+    public static class Result extends ActionResult {
 
-        private final XContentSource response;
+        private final XContentServerSource response;
 
-        public Result(Status status, XContentSource response) {
+        public Result(Status status, XContentServerSource response) {
             super(TYPE, status);
             this.response = response;
         }
 
-        public XContentSource response() {
+        public XContentServerSource response() {
             return response;
         }
 
@@ -206,16 +207,16 @@ public class IndexAction implements Action {
         }
     }
 
-    static class Simulated extends Action.Result {
+    static class Simulated extends ActionResult {
 
         private final String index;
         private final String docType;
         @Nullable private final String docId;
         @Nullable private final RefreshPolicy refreshPolicy;
-        private final XContentSource source;
+        private final XContentServerSource source;
 
         protected Simulated(String index, String docType, @Nullable String docId, @Nullable RefreshPolicy refreshPolicy,
-                            XContentSource source) {
+                            XContentServerSource source) {
             super(TYPE, Status.SIMULATED);
             this.index = index;
             this.docType = docType;
@@ -236,7 +237,7 @@ public class IndexAction implements Action {
             return docId;
         }
 
-        public XContentSource source() {
+        public XContentServerSource source() {
             return source;
         }
 

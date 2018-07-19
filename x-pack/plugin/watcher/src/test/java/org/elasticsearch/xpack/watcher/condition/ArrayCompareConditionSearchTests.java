@@ -8,7 +8,7 @@ package org.elasticsearch.xpack.watcher.condition;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.search.aggregations.AggregationBuilders;
-import org.elasticsearch.xpack.core.watcher.condition.Condition;
+import org.elasticsearch.xpack.core.watcher.condition.ConditionResult;
 import org.elasticsearch.xpack.core.watcher.execution.WatchExecutionContext;
 import org.elasticsearch.xpack.core.watcher.watch.Payload;
 import org.elasticsearch.xpack.watcher.test.AbstractWatcherIntegrationTestCase;
@@ -53,7 +53,7 @@ public class ArrayCompareConditionSearchTests extends AbstractWatcherIntegration
                         numberOfDocumentsWatchingFor, quantifier, Clock.systemUTC());
 
         WatchExecutionContext ctx = mockExecutionContext("_name", new Payload.XContent(response));
-        Condition.Result result = condition.execute(ctx);
+        ConditionResult result = condition.execute(ctx);
 
         boolean met = quantifier.eval(Arrays.<Object>asList(numberOfDocuments, numberOfDocuments), numberOfDocumentsWatchingFor, op);
         assertEquals(met, result.met());

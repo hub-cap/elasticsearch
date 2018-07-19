@@ -9,6 +9,7 @@ import org.elasticsearch.ElasticsearchParseException;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentParser;
 import org.elasticsearch.xpack.core.watcher.common.xcontent.XContentUtils;
+import org.elasticsearch.xpack.core.watcher.condition.ConditionResult;
 import org.elasticsearch.xpack.core.watcher.support.xcontent.ObjectPath;
 
 import java.io.IOException;
@@ -96,13 +97,13 @@ public final class CompareCondition extends AbstractCompareCondition {
     }
 
     @Override
-    protected Result doExecute(Map<String, Object> model, Map<String, Object> resolvedValues) {
+    protected ConditionResult doExecute(Map<String, Object> model, Map<String, Object> resolvedValues) {
         Object configuredValue = resolveConfiguredValue(resolvedValues, model, value);
 
         Object resolvedValue = ObjectPath.eval(path, model);
         resolvedValues.put(path, resolvedValue);
 
-        return new Result(resolvedValues, TYPE, op.eval(resolvedValue, configuredValue));
+        return new ConditionResult(resolvedValues, TYPE, op.eval(resolvedValue, configuredValue));
     }
 
     @Override

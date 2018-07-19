@@ -11,7 +11,7 @@ import org.elasticsearch.common.io.stream.StreamInput;
 import org.elasticsearch.common.io.stream.StreamOutput;
 import org.elasticsearch.common.lucene.uid.Versions;
 import org.elasticsearch.common.xcontent.XContentType;
-import org.elasticsearch.xpack.core.watcher.support.xcontent.XContentSource;
+import org.elasticsearch.xpack.core.watcher.support.xcontent.XContentServerSource;
 import org.elasticsearch.xpack.core.watcher.watch.WatchStatus;
 
 import java.io.IOException;
@@ -21,7 +21,7 @@ public class GetWatchResponse extends ActionResponse {
     private String id;
     private WatchStatus status;
     private boolean found = false;
-    private XContentSource source;
+    private XContentServerSource source;
     private long version;
 
     public GetWatchResponse() {
@@ -44,7 +44,7 @@ public class GetWatchResponse extends ActionResponse {
         this.id = id;
         this.status = status;
         this.found = true;
-        this.source = new XContentSource(source, contentType);
+        this.source = new XContentServerSource(source, contentType);
         this.version = version;
     }
 
@@ -60,7 +60,7 @@ public class GetWatchResponse extends ActionResponse {
         return found;
     }
 
-    public XContentSource getSource() {
+    public XContentServerSource getSource() {
         return source;
     }
 
@@ -75,7 +75,7 @@ public class GetWatchResponse extends ActionResponse {
         found = in.readBoolean();
         if (found) {
             status = WatchStatus.read(in);
-            source = XContentSource.readFrom(in);
+            source = XContentServerSource.readFrom(in);
             version = in.readZLong();
         }
     }
@@ -87,7 +87,7 @@ public class GetWatchResponse extends ActionResponse {
         out.writeBoolean(found);
         if (found) {
             status.writeTo(out);
-            XContentSource.writeTo(source, out);
+            XContentServerSource.writeTo(source, out);
             out.writeZLong(version);
         }
     }

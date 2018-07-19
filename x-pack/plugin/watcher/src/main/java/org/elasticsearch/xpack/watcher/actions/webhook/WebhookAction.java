@@ -10,6 +10,7 @@ import org.elasticsearch.common.ParseField;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentParser;
 import org.elasticsearch.xpack.core.watcher.actions.Action;
+import org.elasticsearch.xpack.core.watcher.actions.ActionResult;
 import org.elasticsearch.xpack.watcher.common.http.HttpRequest;
 import org.elasticsearch.xpack.watcher.common.http.HttpRequestTemplate;
 import org.elasticsearch.xpack.watcher.common.http.HttpResponse;
@@ -72,7 +73,7 @@ public class WebhookAction implements Action {
 
     public interface Result {
 
-        class Success extends Action.Result implements Result {
+        class Success extends ActionResult implements Result {
 
             private final HttpRequest request;
             private final HttpResponse response;
@@ -100,7 +101,7 @@ public class WebhookAction implements Action {
             }
         }
 
-        class Failure extends Action.Result.Failure implements Result {
+        class Failure extends ActionResult.Failure implements Result {
 
             private final HttpRequest request;
             private final HttpResponse response;
@@ -133,7 +134,7 @@ public class WebhookAction implements Action {
             }
         }
 
-        class Simulated extends Action.Result implements Result {
+        class Simulated extends ActionResult implements Result {
 
             private final HttpRequest request;
 

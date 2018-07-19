@@ -8,6 +8,7 @@ package org.elasticsearch.xpack.watcher.condition;
 import org.elasticsearch.ElasticsearchParseException;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentParser;
+import org.elasticsearch.xpack.core.watcher.condition.ConditionResult;
 import org.elasticsearch.xpack.core.watcher.condition.ExecutableCondition;
 import org.elasticsearch.xpack.core.watcher.execution.WatchExecutionContext;
 
@@ -16,7 +17,7 @@ import java.io.IOException;
 public final class NeverCondition implements ExecutableCondition {
 
     public static final String TYPE = "never";
-    public static final Result RESULT_INSTANCE = new Result(null, TYPE, false);
+    public static final ConditionResult RESULT_INSTANCE = new ConditionResult(null, TYPE, false);
     public static final NeverCondition INSTANCE = new NeverCondition();
 
     private NeverCondition() { }
@@ -35,7 +36,7 @@ public final class NeverCondition implements ExecutableCondition {
     }
 
     @Override
-    public Result execute(WatchExecutionContext ctx) {
+    public ConditionResult execute(WatchExecutionContext ctx) {
         return RESULT_INSTANCE;
     }
 

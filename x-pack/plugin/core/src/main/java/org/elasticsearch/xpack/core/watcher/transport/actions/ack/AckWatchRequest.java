@@ -11,7 +11,7 @@ import org.elasticsearch.action.ValidateActions;
 import org.elasticsearch.common.Strings;
 import org.elasticsearch.common.io.stream.StreamInput;
 import org.elasticsearch.common.io.stream.StreamOutput;
-import org.elasticsearch.xpack.core.watcher.support.WatcherUtils;
+import org.elasticsearch.xpack.core.watcher.support.WatcherServerUtils;
 
 import java.io.IOException;
 import java.util.Locale;
@@ -72,7 +72,7 @@ public class AckWatchRequest extends ActionRequest {
         ActionRequestValidationException validationException = null;
         if (watchId == null){
             validationException = ValidateActions.addValidationError("watch id is missing", validationException);
-        } else if (WatcherUtils.isValidId(watchId) == false) {
+        } else if (WatcherServerUtils.isValidId(watchId) == false) {
             validationException = ValidateActions.addValidationError("watch id contains whitespace", validationException);
         }
         if (actionIds != null) {
@@ -80,7 +80,7 @@ public class AckWatchRequest extends ActionRequest {
                 if (actionId == null) {
                     validationException = ValidateActions.addValidationError(
                             String.format(Locale.ROOT, "action id may not be null"), validationException);
-                } else if (WatcherUtils.isValidId(actionId) == false) {
+                } else if (WatcherServerUtils.isValidId(actionId) == false) {
                     validationException = ValidateActions.addValidationError(
                             String.format(Locale.ROOT, "action id [%s] contains whitespace", actionId), validationException);
                 }

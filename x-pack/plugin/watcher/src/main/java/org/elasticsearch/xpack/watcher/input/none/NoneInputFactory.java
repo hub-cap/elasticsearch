@@ -5,15 +5,17 @@
  */
 package org.elasticsearch.xpack.watcher.input.none;
 
+import org.elasticsearch.ElasticsearchParseException;
 import org.elasticsearch.common.logging.Loggers;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.xcontent.XContentParser;
 import org.elasticsearch.xpack.core.watcher.input.none.NoneInput;
+import org.elasticsearch.xpack.core.watcher.input.none.NoneInputResult;
 import org.elasticsearch.xpack.watcher.input.InputFactory;
 
 import java.io.IOException;
 
-public class NoneInputFactory extends InputFactory<NoneInput, NoneInput.Result, ExecutableNoneInput> {
+public class NoneInputFactory extends InputFactory<NoneInput, NoneInputResult, ExecutableNoneInput> {
 
     public NoneInputFactory(Settings settings) {
         super(Loggers.getLogger(ExecutableNoneInput.class, settings));
@@ -26,7 +28,15 @@ public class NoneInputFactory extends InputFactory<NoneInput, NoneInput.Result, 
 
     @Override
     public NoneInput parseInput(String watchId, XContentParser parser) throws IOException {
-        return NoneInput.parse(watchId, parser);
+        if (parser.currentToken() != XContentParser.Token.START_OBJECT) {
+            String formattedMessage = "could not parse [{}] input for watch [{}]. expected an empty object but found [{}] instead";
+            throw new ElasticsearchParseException(formattedMessage, type(), watchId, parser.currentToken());
+        }
+        if (parser.nextToken() != XContentParser.Token.END_OBJECT) {
+            String formattedMessage = "could not parse [{}] input for watch [{}]. expected an empty object but found [{}] instead";
+            throw new ElasticsearchParseException(formattedMessage, type(), watchId, parser.currentToken());
+        }
+        return NoneInput.INSTANCE;
     }
 
     @Override

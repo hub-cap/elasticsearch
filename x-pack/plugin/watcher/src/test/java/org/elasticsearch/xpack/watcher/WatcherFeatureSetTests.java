@@ -24,7 +24,7 @@ import org.elasticsearch.xpack.core.watcher.WatcherFeatureSetUsage;
 import org.elasticsearch.xpack.core.watcher.WatcherMetaData;
 import org.elasticsearch.xpack.core.watcher.common.stats.Counters;
 import org.elasticsearch.xpack.core.watcher.support.xcontent.ObjectPath;
-import org.elasticsearch.xpack.core.watcher.support.xcontent.XContentSource;
+import org.elasticsearch.xpack.core.watcher.support.xcontent.XContentServerSource;
 import org.elasticsearch.xpack.core.watcher.transport.actions.stats.WatcherStatsAction;
 import org.elasticsearch.xpack.core.watcher.transport.actions.stats.WatcherStatsResponse;
 import org.junit.Before;
@@ -125,7 +125,7 @@ public class WatcherFeatureSetTests extends ESTestCase {
             XContentBuilder builder = jsonBuilder();
             usage.toXContent(builder, ToXContent.EMPTY_PARAMS);
 
-            XContentSource source = new XContentSource(builder);
+            XContentServerSource source = new XContentServerSource(builder);
             assertThat(source.getValue("foo.bar.baz"), is(5));
             assertThat(source.getValue("spam"), is(1));
             assertThat(source.getValue("foo.foo"), is(1));

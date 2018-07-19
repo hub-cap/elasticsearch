@@ -7,6 +7,7 @@ package org.elasticsearch.xpack.watcher.actions;
 
 import org.elasticsearch.test.ESTestCase;
 import org.elasticsearch.xpack.core.watcher.actions.Action;
+import org.elasticsearch.xpack.core.watcher.actions.ActionResult;
 import org.elasticsearch.xpack.core.watcher.actions.ActionStatus;
 import org.elasticsearch.xpack.core.watcher.actions.ActionStatus.AckStatus.State;
 import org.elasticsearch.xpack.core.watcher.actions.ActionWrapper;
@@ -42,7 +43,7 @@ public class ActionWrapperTests extends ESTestCase {
 
         ActionWrapperResult result = actionWrapper.execute(mockExecutionContent(watch));
         assertThat(result.condition().met(), is(false));
-        assertThat(result.action().status(), is(Action.Result.Status.CONDITION_FAILED));
+        assertThat(result.action().status(), is(ActionResult.Status.CONDITION_FAILED));
         assertThat(watch.status().actionStatus("_action").ackStatus().state(), is(State.AWAITS_SUCCESSFUL_EXECUTION));
     }
 

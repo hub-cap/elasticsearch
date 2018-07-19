@@ -41,7 +41,7 @@ public abstract class ExecutableAction<A extends Action> implements ToXContentOb
         return logger;
     }
 
-    public abstract Action.Result execute(String actionId, WatchExecutionContext context, Payload payload) throws Exception;
+    public abstract ActionResult execute(String actionId, WatchExecutionContext context, Payload payload) throws Exception;
 
     @Override
     public boolean equals(Object o) {

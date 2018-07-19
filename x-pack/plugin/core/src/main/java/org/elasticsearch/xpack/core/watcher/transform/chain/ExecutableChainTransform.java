@@ -10,7 +10,7 @@ import org.apache.logging.log4j.message.ParameterizedMessage;
 import org.apache.logging.log4j.util.Supplier;
 import org.elasticsearch.xpack.core.watcher.execution.WatchExecutionContext;
 import org.elasticsearch.xpack.core.watcher.transform.ExecutableTransform;
-import org.elasticsearch.xpack.core.watcher.transform.Transform;
+import org.elasticsearch.xpack.core.watcher.transform.TransformResult;
 import org.elasticsearch.xpack.core.watcher.watch.Payload;
 
 import java.io.IOException;
@@ -41,7 +41,7 @@ public class ExecutableChainTransform extends ExecutableTransform<ChainTransform
 
     @Override
     public ChainTransform.Result execute(WatchExecutionContext ctx, Payload payload) {
-        List<Transform.Result> results = new ArrayList<>();
+        List<TransformResult> results = new ArrayList<>();
         try {
             return doExecute(ctx, payload, results);
         } catch (Exception e) {
@@ -51,11 +51,11 @@ public class ExecutableChainTransform extends ExecutableTransform<ChainTransform
     }
 
 
-    ChainTransform.Result doExecute(WatchExecutionContext ctx, Payload payload, List<Transform.Result> results) throws IOException {
+    ChainTransform.Result doExecute(WatchExecutionContext ctx, Payload payload, List<TransformResult> results) throws IOException {
         for (ExecutableTransform transform : transforms) {
-            Transform.Result result = transform.execute(ctx, payload);
+            TransformResult result = transform.execute(ctx, payload);
             results.add(result);
-            if (result.status() == Transform.Result.Status.FAILURE) {
+            if (result.status() == TransformResult.Status.FAILURE) {
                 return new ChainTransform.Result(format("failed to execute [{}] transform for [{}]. failed to execute sub-transform [{}]",
                         ChainTransform.TYPE, ctx.id(), transform.type()), results);
             }

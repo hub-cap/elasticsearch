@@ -37,14 +37,14 @@ import org.elasticsearch.index.engine.DocumentMissingException;
 import org.elasticsearch.xpack.core.watcher.actions.ActionWrapper;
 import org.elasticsearch.xpack.core.watcher.actions.ActionWrapperResult;
 import org.elasticsearch.xpack.core.watcher.common.stats.Counters;
-import org.elasticsearch.xpack.core.watcher.condition.Condition;
+import org.elasticsearch.xpack.core.watcher.condition.ConditionResult;
 import org.elasticsearch.xpack.core.watcher.execution.ExecutionState;
 import org.elasticsearch.xpack.core.watcher.execution.QueuedWatch;
 import org.elasticsearch.xpack.core.watcher.execution.WatchExecutionContext;
 import org.elasticsearch.xpack.core.watcher.execution.WatchExecutionSnapshot;
 import org.elasticsearch.xpack.core.watcher.history.WatchRecord;
-import org.elasticsearch.xpack.core.watcher.input.Input;
-import org.elasticsearch.xpack.core.watcher.transform.Transform;
+import org.elasticsearch.xpack.core.watcher.input.InputResult;
+import org.elasticsearch.xpack.core.watcher.transform.TransformResult;
 import org.elasticsearch.xpack.core.watcher.trigger.TriggerEvent;
 import org.elasticsearch.xpack.core.watcher.watch.Watch;
 import org.elasticsearch.xpack.core.watcher.watch.WatchField;
@@ -343,13 +343,13 @@ public class ExecutionService extends AbstractComponent {
         // so we just need to update the watch itself
         // we do not want to update the status.state field, as it might have been deactivated inbetween
         Map<String, String> parameters = MapBuilder.<String, String>newMapBuilder()
-            .put(Watch.INCLUDE_STATUS_KEY, "true")
+            .put(WatchField.INCLUDE_STATUS_KEY, "true")
             .put(WatchStatus.INCLUDE_STATE, "false")
             .immutableMap();
         ToXContent.MapParams params = new ToXContent.MapParams(parameters);
         XContentBuilder source = JsonXContent.contentBuilder().
             startObject()
-            .field(WatchField.STATUS.getPreferredName(), watch.status(), params)
+            .field(Watch.STATUS.getPreferredName(), watch.status(), params)
             .endObject();
 
         UpdateRequest updateRequest = new UpdateRequest(Watch.INDEX, Watch.DOC_TYPE, watch.id());
@@ -428,32 +428,32 @@ public class ExecutionService extends AbstractComponent {
 
         // input
         ctx.beforeInput();
-        Input.Result inputResult = ctx.inputResult();
+        InputResult inputResult = ctx.inputResult();
         if (inputResult == null) {
             inputResult = watch.input().execute(ctx, ctx.payload());
             ctx.onInputResult(inputResult);
         }
-        if (inputResult.status() == Input.Result.Status.FAILURE) {
+        if (inputResult.status() == InputResult.Status.FAILURE) {
             return ctx.abortFailedExecution("failed to execute watch input");
         }
 
         // condition
         ctx.beforeCondition();
-        Condition.Result conditionResult = ctx.conditionResult();
+        ConditionResult conditionResult = ctx.conditionResult();
         if (conditionResult == null) {
             conditionResult = watch.condition().execute(ctx);
             ctx.onConditionResult(conditionResult);
         }
-        if (conditionResult.status() == Condition.Result.Status.FAILURE) {
+        if (conditionResult.status() == ConditionResult.Status.FAILURE) {
             return ctx.abortFailedExecution("failed to execute watch condition");
         }
 
         if (conditionResult.met()) {
             if (watch.actions().size() > 0 && watch.transform() != null) {
                 ctx.beforeWatchTransform();
-                Transform.Result transformResult = watch.transform().execute(ctx, ctx.payload());
+                TransformResult transformResult = watch.transform().execute(ctx, ctx.payload());
                 ctx.onWatchTransformResult(transformResult);
-                if (transformResult.status() == Transform.Result.Status.FAILURE) {
+                if (transformResult.status() == TransformResult.Status.FAILURE) {
                     return ctx.abortFailedExecution("failed to execute watch transform");
                 }
             }

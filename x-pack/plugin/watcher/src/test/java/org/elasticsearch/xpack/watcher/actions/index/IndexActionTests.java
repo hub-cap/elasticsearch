@@ -25,10 +25,10 @@ import org.elasticsearch.index.Index;
 import org.elasticsearch.index.shard.ShardId;
 import org.elasticsearch.test.ESTestCase;
 import org.elasticsearch.threadpool.ThreadPool;
-import org.elasticsearch.xpack.core.watcher.actions.Action;
-import org.elasticsearch.xpack.core.watcher.actions.Action.Result.Status;
+import org.elasticsearch.xpack.core.watcher.actions.ActionResult;
+import org.elasticsearch.xpack.core.watcher.actions.ActionResult.Status;
 import org.elasticsearch.xpack.core.watcher.execution.WatchExecutionContext;
-import org.elasticsearch.xpack.core.watcher.support.xcontent.XContentSource;
+import org.elasticsearch.xpack.core.watcher.support.xcontent.XContentServerSource;
 import org.elasticsearch.xpack.core.watcher.watch.Payload;
 import org.elasticsearch.xpack.watcher.test.WatcherTestUtils;
 import org.joda.time.DateTime;
@@ -206,7 +206,7 @@ public class IndexActionTests extends ESTestCase {
         PlainActionFuture<IndexResponse> listener = PlainActionFuture.newFuture();
         listener.onResponse(new IndexResponse(new ShardId(new Index("foo", "bar"), 0), "whatever", "whatever", 1, 1, 1, true));
         when(client.index(captor.capture())).thenReturn(listener);
-        Action.Result result = executable.execute("_id", ctx, ctx.payload());
+        ActionResult result = executable.execute("_id", ctx, ctx.payload());
 
         assertThat(result.status(), is(Status.SUCCESS));
         assertThat(captor.getAllValues(), hasSize(1));
@@ -235,7 +235,7 @@ public class IndexActionTests extends ESTestCase {
         BulkResponse bulkResponse = new BulkResponse(new BulkItemResponse[]{response}, 1);
         listener.onResponse(bulkResponse);
         when(client.bulk(captor.capture())).thenReturn(listener);
-        Action.Result result = executable.execute("_id", ctx, ctx.payload());
+        ActionResult result = executable.execute("_id", ctx, ctx.payload());
 
         assertThat(result.status(), is(Status.SUCCESS));
         assertThat(captor.getAllValues(), hasSize(1));
@@ -291,12 +291,12 @@ public class IndexActionTests extends ESTestCase {
         listener.onResponse(new IndexResponse(new ShardId(new Index("test-index", "uuid"), 0), "test-type", docId, 1, 1, 1, true));
         when(client.index(captor.capture())).thenReturn(listener);
 
-        Action.Result result = executable.execute("_id", ctx, ctx.payload());
+        ActionResult result = executable.execute("_id", ctx, ctx.payload());
 
         assertThat(result.status(), equalTo(Status.SUCCESS));
         assertThat(result, instanceOf(IndexAction.Result.class));
         IndexAction.Result successResult = (IndexAction.Result) result;
-        XContentSource response = successResult.response();
+        XContentServerSource response = successResult.response();
         assertThat(response.getValue("created"), equalTo((Object)Boolean.TRUE));
         assertThat(response.getValue("version"), equalTo((Object) 1));
         assertThat(response.getValue("type").toString(), equalTo("test-type"));
@@ -351,7 +351,7 @@ public class IndexActionTests extends ESTestCase {
         BulkResponse bulkResponse = new BulkResponse(new BulkItemResponse[]{firstResponse, secondResponse}, 1);
         listener.onResponse(bulkResponse);
         when(client.bulk(captor.capture())).thenReturn(listener);
-        Action.Result result = executable.execute("_id", ctx, payload);
+        ActionResult result = executable.execute("_id", ctx, payload);
         RefreshPolicy expectedRefreshPolicy = refreshPolicy == null ? RefreshPolicy.NONE: refreshPolicy;
         assertThat(captor.getValue().getRefreshPolicy(), is(expectedRefreshPolicy));
 

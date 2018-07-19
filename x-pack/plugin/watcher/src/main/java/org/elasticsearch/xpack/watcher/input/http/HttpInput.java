@@ -11,6 +11,7 @@ import org.elasticsearch.common.ParseField;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentParser;
 import org.elasticsearch.xpack.core.watcher.input.Input;
+import org.elasticsearch.xpack.core.watcher.input.InputResult;
 import org.elasticsearch.xpack.core.watcher.watch.Payload;
 import org.elasticsearch.xpack.watcher.common.http.HttpContentType;
 import org.elasticsearch.xpack.watcher.common.http.HttpRequest;
@@ -136,7 +137,7 @@ public class HttpInput implements Input {
         return new Builder(httpRequest);
     }
 
-    public static class Result extends Input.Result {
+    public static class Result extends InputResult {
 
         @Nullable private final HttpRequest request;
         final int statusCode;

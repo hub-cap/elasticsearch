@@ -7,6 +7,7 @@ package org.elasticsearch.xpack.watcher.input.transform;
 
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.xpack.core.watcher.input.Input;
+import org.elasticsearch.xpack.core.watcher.input.InputResult;
 import org.elasticsearch.xpack.core.watcher.transform.Transform;
 import org.elasticsearch.xpack.core.watcher.watch.Payload;
 
@@ -61,7 +62,7 @@ public class TransformInput implements Input {
         return Objects.equals(transform, that.transform);
     }
 
-    static class Result extends Input.Result {
+    static class Result extends InputResult {
 
         Result(Payload payload) {
             super(TYPE, payload);

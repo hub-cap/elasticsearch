@@ -9,6 +9,7 @@ import org.elasticsearch.ElasticsearchParseException;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentParser;
 import org.elasticsearch.xpack.core.watcher.input.Input;
+import org.elasticsearch.xpack.core.watcher.input.InputResult;
 import org.elasticsearch.xpack.core.watcher.watch.Payload;
 
 import java.io.IOException;
@@ -65,7 +66,7 @@ public class SimpleInput implements Input {
         return new Builder(payload);
     }
 
-    public static class Result extends Input.Result {
+    public static class Result extends InputResult {
 
         public Result(Payload payload) {
             super(TYPE, payload);

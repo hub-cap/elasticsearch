@@ -11,6 +11,7 @@ import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentParser;
 import org.elasticsearch.xpack.core.watcher.transform.Transform;
 import org.elasticsearch.xpack.core.watcher.transform.TransformRegistry;
+import org.elasticsearch.xpack.core.watcher.transform.TransformResult;
 import org.elasticsearch.xpack.core.watcher.watch.Payload;
 
 import java.io.IOException;
@@ -98,26 +99,26 @@ public class ChainTransform implements Transform {
         return new Builder(transforms);
     }
 
-    public static class Result extends Transform.Result {
+    public static class Result extends TransformResult {
 
-        private final List<Transform.Result> results;
+        private final List<TransformResult> results;
 
-        public Result(Payload payload, List<Transform.Result> results) {
+        public Result(Payload payload, List<TransformResult> results) {
             super(TYPE, payload);
             this.results = Collections.unmodifiableList(results);
         }
 
-        public Result(Exception e, List<Transform.Result> results) {
+        public Result(Exception e, List<TransformResult> results) {
             super(TYPE, e);
             this.results = Collections.unmodifiableList(results);
         }
 
-        public Result(String errorMessage, List<Transform.Result> results) {
+        public Result(String errorMessage, List<TransformResult> results) {
             super(TYPE, errorMessage);
             this.results = Collections.unmodifiableList(results);
         }
 
-        public List<Transform.Result> results() {
+        public List<TransformResult> results() {
             return results;
         }
 
@@ -126,7 +127,7 @@ public class ChainTransform implements Transform {
             if (!results.isEmpty()) {
                 builder.startObject(type);
                 builder.startArray(Field.RESULTS.getPreferredName());
-                for (Transform.Result result : results) {
+                for (TransformResult result : results) {
                     result.toXContent(builder, params);
                 }
                 builder.endArray();

@@ -6,6 +6,7 @@
 package org.elasticsearch.xpack.watcher.condition;
 
 import org.elasticsearch.common.xcontent.XContentBuilder;
+import org.elasticsearch.xpack.core.watcher.condition.ConditionResult;
 import org.elasticsearch.xpack.core.watcher.condition.ExecutableCondition;
 import org.elasticsearch.xpack.core.watcher.execution.WatchExecutionContext;
 import org.elasticsearch.xpack.core.watcher.support.WatcherDateTimeUtils;
@@ -34,7 +35,7 @@ abstract class AbstractCompareCondition implements ExecutableCondition {
     }
 
     @Override
-    public final Result execute(WatchExecutionContext ctx) {
+    public final ConditionResult execute(WatchExecutionContext ctx) {
         Map<String, Object> resolvedValues = new HashMap<>();
         Map<String, Object> model = Variables.createCtxModel(ctx, ctx.payload());
         return doExecute(model, resolvedValues);
@@ -62,7 +63,7 @@ abstract class AbstractCompareCondition implements ExecutableCondition {
         return configuredValue;
     }
 
-    protected abstract Result doExecute(Map<String, Object> model, Map<String, Object> resolvedValues);
+    protected abstract ConditionResult doExecute(Map<String, Object> model, Map<String, Object> resolvedValues);
 
     @Override
     public String type() {

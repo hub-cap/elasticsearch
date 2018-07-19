@@ -13,7 +13,7 @@ import org.elasticsearch.xpack.core.watcher.watch.Payload;
 
 import java.io.IOException;
 
-public abstract class ExecutableTransform<T extends Transform, R extends Transform.Result> implements ToXContentFragment {
+public abstract class ExecutableTransform<T extends Transform, R extends TransformResult> implements ToXContentFragment {
 
     protected final T transform;
     protected final Logger logger;

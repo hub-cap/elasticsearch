@@ -1,9 +1,22 @@
 /*
- * Copyright Elasticsearch B.V. and/or licensed to Elasticsearch B.V. under one
- * or more contributor license agreements. Licensed under the Elastic License;
- * you may not use this file except in compliance with the Elastic License.
+ * Licensed to Elasticsearch under one or more contributor
+ * license agreements. See the NOTICE file distributed with
+ * this work for additional information regarding copyright
+ * ownership. Elasticsearch licenses this file to you under
+ * the Apache License, Version 2.0 (the "License"); you may
+ * not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
-package org.elasticsearch.xpack.core.watcher.client;
+package org.elasticsearch.protocol.xpack.watcher.client;
 
 import org.elasticsearch.ElasticsearchException;
 import org.elasticsearch.common.Nullable;
@@ -20,7 +33,6 @@ import org.elasticsearch.xpack.core.watcher.condition.AlwaysCondition;
 import org.elasticsearch.xpack.core.watcher.condition.Condition;
 import org.elasticsearch.xpack.core.watcher.input.Input;
 import org.elasticsearch.xpack.core.watcher.input.none.NoneInput;
-import org.elasticsearch.xpack.core.watcher.support.Exceptions;
 import org.elasticsearch.xpack.core.watcher.support.xcontent.WatcherParams;
 import org.elasticsearch.xpack.core.watcher.support.xcontent.XContentSource;
 import org.elasticsearch.xpack.core.watcher.transform.Transform;
@@ -32,6 +44,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static org.elasticsearch.common.xcontent.XContentFactory.jsonBuilder;
+import static org.elasticsearch.common.logging.LoggerMessageFormat.format;
 
 public class WatchSourceBuilder implements ToXContentObject {
 
@@ -43,7 +56,7 @@ public class WatchSourceBuilder implements ToXContentObject {
     private TimeValue defaultThrottlePeriod = null;
     private Map<String, Object> metadata;
 
-    public WatchSourceBuilder trigger(Trigger.Builder trigger) {
+    public WatchSourceBuilder trigger(Trigger.Builder<?> trigger) {
         return trigger(trigger.build());
     }
 
@@ -52,7 +65,7 @@ public class WatchSourceBuilder implements ToXContentObject {
         return this;
     }
 
-    public WatchSourceBuilder input(Input.Builder input) {
+    public WatchSourceBuilder input(Input.Builder<?> input) {
         return input(input.build());
     }
 
@@ -71,7 +84,7 @@ public class WatchSourceBuilder implements ToXContentObject {
         return this;
     }
 
-    public WatchSourceBuilder transform(Transform.Builder transform) {
+    public WatchSourceBuilder transform(Transform.Builder<?> transform) {
         return transform(transform.build());
     }
 
@@ -80,23 +93,23 @@ public class WatchSourceBuilder implements ToXContentObject {
         return this;
     }
 
-    public WatchSourceBuilder addAction(String id, Action.Builder action) {
+    public WatchSourceBuilder addAction(String id, Action.Builder<?> action) {
         return addAction(id, null, null, action.build());
     }
 
-    public WatchSourceBuilder addAction(String id, TimeValue throttlePeriod, Action.Builder action) {
+    public WatchSourceBuilder addAction(String id, TimeValue throttlePeriod, Action.Builder<?> action) {
         return addAction(id, throttlePeriod, null, action.build());
     }
 
-    public WatchSourceBuilder addAction(String id, Transform.Builder transform, Action.Builder action) {
+    public WatchSourceBuilder addAction(String id, Transform.Builder<?> transform, Action.Builder<?> action) {
         return addAction(id, null, transform.build(), action.build());
     }
 
-    public WatchSourceBuilder addAction(String id, Condition condition, Action.Builder action) {
+    public WatchSourceBuilder addAction(String id, Condition condition, Action.Builder<?> action) {
         return addAction(id, null, condition, null, action.build());
     }
 
-    public WatchSourceBuilder addAction(String id, TimeValue throttlePeriod, Transform.Builder transform, Action.Builder action) {
+    public WatchSourceBuilder addAction(String id, TimeValue throttlePeriod, Transform.Builder<?> transform, Action.Builder<?> action) {
         return addAction(id, throttlePeriod, transform.build(), action.build());
     }
 
@@ -105,8 +118,8 @@ public class WatchSourceBuilder implements ToXContentObject {
         return this;
     }
 
-    public WatchSourceBuilder addAction(String id, TimeValue throttlePeriod, Condition condition, Transform.Builder transform,
-                                        Action.Builder action) {
+    public WatchSourceBuilder addAction(String id, TimeValue throttlePeriod, Condition condition, Transform.Builder<?> transform,
+                                        Action.Builder<?> action) {
         return addAction(id, throttlePeriod, condition, transform.build(), action.build());
     }
 
@@ -131,7 +144,7 @@ public class WatchSourceBuilder implements ToXContentObject {
         builder.startObject();
 
         if (trigger == null) {
-            throw Exceptions.illegalState("failed to build watch source. no trigger defined");
+            throw new IllegalStateException(format("failed to build watch source. no trigger defined"));
         }
         builder.startObject(WatchField.TRIGGER.getPreferredName())
                 .field(trigger.type(), trigger, params)

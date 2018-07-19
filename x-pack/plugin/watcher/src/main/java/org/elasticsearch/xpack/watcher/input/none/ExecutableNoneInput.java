@@ -10,17 +10,18 @@ import org.apache.logging.log4j.Logger;
 import org.elasticsearch.xpack.core.watcher.execution.WatchExecutionContext;
 import org.elasticsearch.xpack.core.watcher.input.ExecutableInput;
 import org.elasticsearch.xpack.core.watcher.input.none.NoneInput;
+import org.elasticsearch.xpack.core.watcher.input.none.NoneInputResult;
 import org.elasticsearch.xpack.core.watcher.watch.Payload;
 
-public class ExecutableNoneInput extends ExecutableInput<NoneInput, NoneInput.Result> {
+public class ExecutableNoneInput extends ExecutableInput<NoneInput, NoneInputResult> {
 
     public ExecutableNoneInput(Logger logger) {
         super(NoneInput.INSTANCE, logger);
     }
 
     @Override
-    public NoneInput.Result execute(WatchExecutionContext ctx, Payload payload) {
-        return NoneInput.Result.INSTANCE;
+    public NoneInputResult execute(WatchExecutionContext ctx, Payload payload) {
+        return NoneInputResult.INSTANCE;
     }
 
 }

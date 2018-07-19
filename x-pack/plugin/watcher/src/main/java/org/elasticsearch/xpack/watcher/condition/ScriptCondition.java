@@ -11,6 +11,7 @@ import org.elasticsearch.common.xcontent.XContentParser;
 import org.elasticsearch.script.ExecutableScript;
 import org.elasticsearch.script.Script;
 import org.elasticsearch.script.ScriptService;
+import org.elasticsearch.xpack.core.watcher.condition.ConditionResult;
 import org.elasticsearch.xpack.core.watcher.condition.ExecutableCondition;
 import org.elasticsearch.xpack.core.watcher.execution.WatchExecutionContext;
 import org.elasticsearch.xpack.watcher.Watcher;
@@ -26,8 +27,8 @@ import static org.elasticsearch.xpack.core.watcher.support.Exceptions.illegalSta
  */
 public final class ScriptCondition implements ExecutableCondition {
     public static final String TYPE = "script";
-    private static final Result MET = new Result(null, TYPE, true);
-    private static final Result UNMET = new Result(null, TYPE, false);
+    private static final ConditionResult MET = new ConditionResult(null, TYPE, true);
+    private static final ConditionResult UNMET = new ConditionResult(null, TYPE, false);
 
     private final ScriptService scriptService;
     private final Script script;
@@ -60,11 +61,11 @@ public final class ScriptCondition implements ExecutableCondition {
     }
 
     @Override
-    public Result execute(WatchExecutionContext ctx) {
+    public ConditionResult execute(WatchExecutionContext ctx) {
         return doExecute(ctx);
     }
 
-    public Result doExecute(WatchExecutionContext ctx) {
+    public ConditionResult doExecute(WatchExecutionContext ctx) {
         Map<String, Object> parameters = Variables.createCtxModel(ctx, ctx.payload());
         if (script.getParams() != null && !script.getParams().isEmpty()) {
             parameters.putAll(script.getParams());

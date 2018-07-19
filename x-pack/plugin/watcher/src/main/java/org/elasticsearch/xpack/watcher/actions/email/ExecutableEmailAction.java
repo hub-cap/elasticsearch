@@ -7,7 +7,7 @@ package org.elasticsearch.xpack.watcher.actions.email;
 
 import org.apache.logging.log4j.Logger;
 import org.elasticsearch.ElasticsearchException;
-import org.elasticsearch.xpack.core.watcher.actions.Action;
+import org.elasticsearch.xpack.core.watcher.actions.ActionResult;
 import org.elasticsearch.xpack.core.watcher.actions.ExecutableAction;
 import org.elasticsearch.xpack.core.watcher.execution.WatchExecutionContext;
 import org.elasticsearch.xpack.core.watcher.watch.Payload;
@@ -40,7 +40,7 @@ public class ExecutableEmailAction extends ExecutableAction<EmailAction> {
         this.emailAttachmentParsers = emailAttachmentParsers;
     }
 
-    public Action.Result execute(String actionId, WatchExecutionContext ctx, Payload payload) throws Exception {
+    public ActionResult execute(String actionId, WatchExecutionContext ctx, Payload payload) throws Exception {
         Map<String, Object> model = Variables.createCtxModel(ctx, payload);
 
         Map<String, Attachment> attachments = new HashMap<>();

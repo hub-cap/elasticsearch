@@ -15,9 +15,9 @@ import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.sort.SortBuilders;
 import org.elasticsearch.search.sort.SortOrder;
 import org.elasticsearch.xpack.core.watcher.actions.ActionStatus;
-import org.elasticsearch.xpack.core.watcher.client.WatchSourceBuilder;
+import org.elasticsearch.protocol.xpack.watcher.client.WatchSourceBuilder;
 import org.elasticsearch.xpack.core.watcher.input.Input;
-import org.elasticsearch.xpack.core.watcher.support.xcontent.XContentSource;
+import org.elasticsearch.xpack.core.watcher.support.xcontent.XContentServerSource;
 import org.elasticsearch.xpack.core.watcher.watch.WatchStatus;
 import org.elasticsearch.xpack.watcher.support.search.WatcherSearchTemplateRequest;
 import org.elasticsearch.xpack.watcher.test.AbstractWatcherIntegrationTestCase;
@@ -99,7 +99,7 @@ public class HistoryIntegrationTests extends AbstractWatcherIntegrationTestCase 
         // as fields with dots are allowed in 5.0 again, the mapping must be checked in addition
         GetMappingsResponse response = client().admin().indices().prepareGetMappings(".watcher-history*").addTypes("doc").get();
         byte[] bytes = response.getMappings().values().iterator().next().value.get("doc").source().uncompressed();
-        XContentSource source = new XContentSource(new BytesArray(bytes), XContentType.JSON);
+        XContentServerSource source = new XContentServerSource(new BytesArray(bytes), XContentType.JSON);
         // lets make sure the body fields are disabled
         if (useChained) {
             String chainedPath = "doc.properties.result.properties.input.properties.chain.properties.chained.properties.search" +
@@ -137,7 +137,7 @@ public class HistoryIntegrationTests extends AbstractWatcherIntegrationTestCase 
         // as fields with dots are allowed in 5.0 again, the mapping must be checked in addition
         GetMappingsResponse response = client().admin().indices().prepareGetMappings(".watcher-history*").addTypes("doc").get();
         byte[] bytes = response.getMappings().values().iterator().next().value.get("doc").source().uncompressed();
-        XContentSource source = new XContentSource(new BytesArray(bytes), XContentType.JSON);
+        XContentServerSource source = new XContentServerSource(new BytesArray(bytes), XContentType.JSON);
 
         // lets make sure the body fields are disabled
         if (useChained) {
@@ -166,7 +166,7 @@ public class HistoryIntegrationTests extends AbstractWatcherIntegrationTestCase 
         assertHitCount(searchResponse, 1);
         SearchHit hit = searchResponse.getHits().getAt(0);
 
-        XContentSource source = new XContentSource(hit.getSourceRef(), XContentType.JSON);
+        XContentServerSource source = new XContentServerSource(hit.getSourceRef(), XContentType.JSON);
 
         Boolean active = source.getValue("status.state.active");
         assertThat(active, is(status.state().isActive()));
@@ -191,7 +191,7 @@ public class HistoryIntegrationTests extends AbstractWatcherIntegrationTestCase 
         // also ensure that the status field is disabled in the watch history
         GetMappingsResponse response = client().admin().indices().prepareGetMappings(".watcher-history*").addTypes("doc").get();
         byte[] bytes = response.getMappings().values().iterator().next().value.get("doc").source().uncompressed();
-        XContentSource mappingSource = new XContentSource(new BytesArray(bytes), XContentType.JSON);
+        XContentServerSource mappingSource = new XContentServerSource(new BytesArray(bytes), XContentType.JSON);
         assertThat(mappingSource.getValue("doc.properties.status.enabled"), is(false));
         assertThat(mappingSource.getValue("doc.properties.status.properties.status"), is(nullValue()));
         assertThat(mappingSource.getValue("doc.properties.status.properties.status.properties.active"), is(nullValue()));

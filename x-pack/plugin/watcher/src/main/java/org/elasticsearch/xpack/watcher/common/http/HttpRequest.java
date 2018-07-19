@@ -18,7 +18,7 @@ import org.elasticsearch.common.xcontent.XContentParser;
 import org.elasticsearch.common.xcontent.XContentType;
 import org.elasticsearch.rest.RestUtils;
 import org.elasticsearch.xpack.core.watcher.support.WatcherDateTimeUtils;
-import org.elasticsearch.xpack.core.watcher.support.WatcherUtils;
+import org.elasticsearch.xpack.core.watcher.support.WatcherServerUtils;
 import org.elasticsearch.xpack.core.watcher.support.xcontent.WatcherParams;
 import org.elasticsearch.xpack.core.watcher.support.xcontent.WatcherXContentParser;
 import org.elasticsearch.xpack.watcher.common.http.auth.HttpAuth;
@@ -299,9 +299,9 @@ public class HttpRequest implements ToXContentObject {
                     }
                 } else if (token == XContentParser.Token.START_OBJECT) {
                     if (Field.HEADERS.match(currentFieldName, parser.getDeprecationHandler())) {
-                        builder.setHeaders((Map) WatcherUtils.flattenModel(parser.map()));
+                        builder.setHeaders((Map) WatcherServerUtils.flattenModel(parser.map()));
                     } else if (Field.PARAMS.match(currentFieldName, parser.getDeprecationHandler())) {
-                        builder.setParams((Map) WatcherUtils.flattenModel(parser.map()));
+                        builder.setParams((Map) WatcherServerUtils.flattenModel(parser.map()));
                     }  else if (Field.BODY.match(currentFieldName, parser.getDeprecationHandler())) {
                         builder.body(parser.text());
                     } else {

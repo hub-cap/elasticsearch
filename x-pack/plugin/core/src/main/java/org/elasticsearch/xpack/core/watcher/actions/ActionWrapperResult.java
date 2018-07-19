@@ -8,8 +8,9 @@ package org.elasticsearch.xpack.core.watcher.actions;
 import org.elasticsearch.common.Nullable;
 import org.elasticsearch.common.xcontent.ToXContentObject;
 import org.elasticsearch.common.xcontent.XContentBuilder;
-import org.elasticsearch.xpack.core.watcher.condition.Condition;
+import org.elasticsearch.xpack.core.watcher.condition.ConditionResult;
 import org.elasticsearch.xpack.core.watcher.transform.Transform;
+import org.elasticsearch.xpack.core.watcher.transform.TransformResult;
 import org.elasticsearch.xpack.core.watcher.watch.WatchField;
 
 import java.io.IOException;
@@ -19,17 +20,17 @@ public class ActionWrapperResult implements ToXContentObject {
 
     private final String id;
     @Nullable
-    private final Condition.Result condition;
+    private final ConditionResult condition;
     @Nullable
-    private final Transform.Result transform;
-    private final Action.Result action;
+    private final TransformResult transform;
+    private final ActionResult action;
 
-    public ActionWrapperResult(String id, Action.Result action) {
+    public ActionWrapperResult(String id, ActionResult action) {
         this(id, null, null, action);
     }
 
-    public ActionWrapperResult(String id, @Nullable Condition.Result condition, @Nullable Transform.Result transform,
-                               Action.Result action) {
+    public ActionWrapperResult(String id, @Nullable ConditionResult condition, @Nullable TransformResult transform,
+                               ActionResult action) {
         this.id = id;
         this.condition = condition;
         this.transform = transform;
@@ -40,15 +41,15 @@ public class ActionWrapperResult implements ToXContentObject {
         return id;
     }
 
-    public Condition.Result condition() {
+    public ConditionResult condition() {
         return condition;
     }
 
-    public Transform.Result transform() {
+    public TransformResult transform() {
         return transform;
     }
 
-    public Action.Result action() {
+    public ActionResult action() {
         return action;
     }
 

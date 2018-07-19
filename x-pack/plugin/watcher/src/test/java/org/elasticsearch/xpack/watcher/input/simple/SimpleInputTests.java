@@ -11,7 +11,7 @@ import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentParser;
 import org.elasticsearch.test.ESTestCase;
 import org.elasticsearch.xpack.core.watcher.input.ExecutableInput;
-import org.elasticsearch.xpack.core.watcher.input.Input;
+import org.elasticsearch.xpack.core.watcher.input.InputResult;
 import org.elasticsearch.xpack.core.watcher.watch.Payload;
 import org.elasticsearch.xpack.watcher.input.InputFactory;
 
@@ -31,7 +31,7 @@ public class SimpleInputTests extends ESTestCase {
         data.put("baz", new ArrayList<String>() );
         ExecutableInput staticInput = new ExecutableSimpleInput(new SimpleInput(new Payload.Simple(data)), logger);
 
-        Input.Result staticResult = staticInput.execute(null, new Payload.Simple());
+        InputResult staticResult = staticInput.execute(null, new Payload.Simple());
         assertEquals(staticResult.payload().data().get("foo"), "bar");
         List baz = (List)staticResult.payload().data().get("baz");
         assertTrue(baz.isEmpty());
@@ -50,7 +50,7 @@ public class SimpleInputTests extends ESTestCase {
         assertEquals(input.type(), SimpleInput.TYPE);
 
 
-        Input.Result staticResult = input.execute(null, new Payload.Simple());
+        InputResult staticResult = input.execute(null, new Payload.Simple());
         assertEquals(staticResult.payload().data().get("foo"), "bar");
         List baz = (List)staticResult.payload().data().get("baz");
         assertTrue(baz.isEmpty());

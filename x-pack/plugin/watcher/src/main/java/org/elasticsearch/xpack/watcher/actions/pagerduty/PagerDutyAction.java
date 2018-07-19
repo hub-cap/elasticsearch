@@ -10,6 +10,7 @@ import org.elasticsearch.common.ParseField;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentParser;
 import org.elasticsearch.xpack.core.watcher.actions.Action;
+import org.elasticsearch.xpack.core.watcher.actions.ActionResult;
 import org.elasticsearch.xpack.watcher.notification.pagerduty.IncidentEvent;
 import org.elasticsearch.xpack.watcher.notification.pagerduty.SentEvent;
 
@@ -61,7 +62,7 @@ public class PagerDutyAction implements Action {
 
     public interface Result {
 
-        class Executed extends Action.Result implements Result {
+        class Executed extends ActionResult implements Result {
 
             private final String account;
             private final SentEvent sentEvent;
@@ -92,7 +93,7 @@ public class PagerDutyAction implements Action {
             }
         }
 
-        class Simulated extends Action.Result implements Result {
+        class Simulated extends ActionResult implements Result {
 
             private final IncidentEvent event;
 

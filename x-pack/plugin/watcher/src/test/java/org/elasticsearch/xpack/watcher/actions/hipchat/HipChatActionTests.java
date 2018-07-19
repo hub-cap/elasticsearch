@@ -17,7 +17,7 @@ import org.elasticsearch.common.xcontent.XContentParser;
 import org.elasticsearch.common.xcontent.XContentType;
 import org.elasticsearch.common.xcontent.json.JsonXContent;
 import org.elasticsearch.test.ESTestCase;
-import org.elasticsearch.xpack.core.watcher.actions.Action;
+import org.elasticsearch.xpack.core.watcher.actions.ActionResult;
 import org.elasticsearch.xpack.core.watcher.execution.WatchExecutionContext;
 import org.elasticsearch.xpack.core.watcher.execution.Wid;
 import org.elasticsearch.xpack.core.watcher.watch.Payload;
@@ -117,14 +117,14 @@ public class HipChatActionTests extends ESTestCase {
         when(account.send(message, null)).thenReturn(sentMessages);
         when(service.getAccount(accountName)).thenReturn(account);
 
-        Action.Result result = executable.execute("_id", ctx, payload);
+        ActionResult result = executable.execute("_id", ctx, payload);
 
         assertThat(result, notNullValue());
         assertThat(result, instanceOf(HipChatAction.Result.Executed.class));
         if (responseFailure) {
-            assertThat(result.status(), equalTo(Action.Result.Status.FAILURE));
+            assertThat(result.status(), equalTo(ActionResult.Status.FAILURE));
         } else {
-            assertThat(result.status(), equalTo(Action.Result.Status.SUCCESS));
+            assertThat(result.status(), equalTo(ActionResult.Status.SUCCESS));
         }
         assertThat(((HipChatAction.Result.Executed) result).sentMessages(), sameInstance(sentMessages));
         assertValidToXContent(result);
@@ -279,7 +279,7 @@ public class HipChatActionTests extends ESTestCase {
     }
 
     // ensure that toXContent can be serialized and read again
-    private void assertValidToXContent(Action.Result result) throws IOException {
+    private void assertValidToXContent(ActionResult result) throws IOException {
         try (XContentBuilder builder = jsonBuilder()) {
             builder.startObject();
             result.toXContent(builder, ToXContent.EMPTY_PARAMS);

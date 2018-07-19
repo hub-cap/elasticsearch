@@ -9,6 +9,7 @@ import org.elasticsearch.ElasticsearchParseException;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentParser;
 import org.elasticsearch.xpack.core.watcher.common.xcontent.XContentUtils;
+import org.elasticsearch.xpack.core.watcher.condition.ConditionResult;
 import org.elasticsearch.xpack.core.watcher.support.xcontent.ObjectPath;
 
 import java.io.IOException;
@@ -166,7 +167,7 @@ public final class ArrayCompareCondition extends AbstractCompareCondition {
         return new ArrayCompareCondition(arrayPath, path, op, value, quantifier, clock);
     }
 
-    public Result doExecute(Map<String, Object> model, Map<String, Object> resolvedValues) {
+    public ConditionResult doExecute(Map<String, Object> model, Map<String, Object> resolvedValues) {
         Object configuredValue = resolveConfiguredValue(resolvedValues, model, value);
 
         Object object = ObjectPath.eval(arrayPath, model);
@@ -183,7 +184,7 @@ public final class ArrayCompareCondition extends AbstractCompareCondition {
         }
         resolvedValues.put(arrayPath, resolvedArray);
 
-        return new Result(resolvedValues, TYPE, quantifier.eval(resolvedValue,
+        return new ConditionResult(resolvedValues, TYPE, quantifier.eval(resolvedValue,
                 configuredValue, op));
     }
 

@@ -12,7 +12,7 @@ import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentParser;
 import org.elasticsearch.test.ESTestCase;
-import org.elasticsearch.xpack.core.watcher.actions.Action;
+import org.elasticsearch.xpack.core.watcher.actions.ActionResult;
 import org.elasticsearch.xpack.core.watcher.execution.WatchExecutionContext;
 import org.elasticsearch.xpack.core.watcher.watch.Payload;
 import org.elasticsearch.xpack.watcher.common.text.TextTemplate;
@@ -82,11 +82,11 @@ public class LoggingActionTests extends ESTestCase {
 
 
 
-        Action.Result result = executable.execute("_id", ctx, new Payload.Simple());
+        ActionResult result = executable.execute("_id", ctx, new Payload.Simple());
         verifyLogger(actionLogger, level, text);
 
         assertThat(result, notNullValue());
-        assertThat(result.status(), is(Action.Result.Status.SUCCESS));
+        assertThat(result.status(), is(ActionResult.Status.SUCCESS));
         assertThat(result, instanceOf(LoggingAction.Result.Success.class));
         assertThat(((LoggingAction.Result.Success) result).loggedText(), is(text));
     }

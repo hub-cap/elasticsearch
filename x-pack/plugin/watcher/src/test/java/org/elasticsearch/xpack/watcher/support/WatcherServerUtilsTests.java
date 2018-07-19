@@ -35,7 +35,7 @@ import java.util.Map;
 import static java.util.Collections.singletonMap;
 import static org.elasticsearch.common.xcontent.XContentFactory.jsonBuilder;
 import static org.elasticsearch.xpack.core.watcher.support.WatcherDateTimeUtils.formatDate;
-import static org.elasticsearch.xpack.core.watcher.support.WatcherUtils.flattenModel;
+import static org.elasticsearch.xpack.core.watcher.support.WatcherServerUtils.flattenModel;
 import static org.elasticsearch.xpack.watcher.input.search.ExecutableSearchInput.DEFAULT_SEARCH_TYPE;
 import static org.elasticsearch.xpack.watcher.test.WatcherTestUtils.getRandomSupportedSearchType;
 import static org.hamcrest.Matchers.arrayContainingInAnyOrder;
@@ -44,7 +44,7 @@ import static org.hamcrest.Matchers.hasEntry;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
 
-public class WatcherUtilsTests extends ESTestCase {
+public class WatcherServerUtilsTests extends ESTestCase {
     public void testFlattenModel() throws Exception {
         DateTime now = new DateTime(Clock.systemUTC().millis());
         Map<String, Object> map = new HashMap<>();

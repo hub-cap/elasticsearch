@@ -11,7 +11,7 @@ import org.elasticsearch.xpack.core.watcher.actions.ActionStatus;
 import org.elasticsearch.xpack.core.watcher.client.WatcherClient;
 import org.elasticsearch.xpack.core.watcher.execution.ActionExecutionMode;
 import org.elasticsearch.xpack.core.watcher.execution.Wid;
-import org.elasticsearch.xpack.core.watcher.support.xcontent.XContentSource;
+import org.elasticsearch.xpack.core.watcher.support.xcontent.XContentServerSource;
 import org.elasticsearch.xpack.core.watcher.transport.actions.ack.AckWatchRequestBuilder;
 import org.elasticsearch.xpack.core.watcher.transport.actions.ack.AckWatchResponse;
 import org.elasticsearch.xpack.core.watcher.transport.actions.execute.ExecuteWatchResponse;
@@ -50,7 +50,7 @@ public class ExecuteWatchTests extends AbstractWatcherIntegrationTestCase {
         Wid wid = new Wid(response.getRecordId());
         assertThat(wid.watchId(), is("_id"));
 
-        XContentSource record = response.getRecordSource();
+        XContentServerSource record = response.getRecordSource();
         assertValue(record, "watch_id", is("_id"));
         assertValue(record, "trigger_event.type", is("manual"));
         assertValue(record, "trigger_event.triggered_time", notNullValue());
@@ -138,7 +138,7 @@ public class ExecuteWatchTests extends AbstractWatcherIntegrationTestCase {
         Wid wid = new Wid(response.getRecordId());
         assertThat(wid.watchId(), is("_id"));
 
-        XContentSource record = response.getRecordSource();
+        XContentServerSource record = response.getRecordSource();
         assertValue(record, "watch_id", is("_id"));
         assertValue(record, "trigger_event.type", is("manual"));
         assertValue(record, "trigger_event.triggered_time", notNullValue());
