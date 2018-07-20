@@ -17,7 +17,6 @@ import org.elasticsearch.xpack.watcher.common.http.HttpProxy;
 import org.elasticsearch.xpack.watcher.common.http.HttpRequest;
 import org.elasticsearch.xpack.watcher.common.http.HttpResponse;
 import org.elasticsearch.xpack.watcher.common.http.Scheme;
-import org.elasticsearch.xpack.watcher.common.text.TextTemplate;
 import org.elasticsearch.xpack.watcher.test.MockTextTemplateEngine;
 import org.mockito.ArgumentCaptor;
 
@@ -246,10 +245,8 @@ public class UserAccountTests extends ESTestCase {
                 .build();
         UserAccount userAccount = createUserAccount(settings);
 
-        TextTemplate body = new TextTemplate("body");
-        TextTemplate[] rooms = new TextTemplate[] { new TextTemplate("room")};
-        HipChatMessage.Template template =
-                new HipChatMessage.Template(body, rooms, null, "sender", HipChatMessage.Format.TEXT, null, true);
+        HipChatMessage template =
+                new HipChatMessage("body", new String[] {"rooms"}, null, "sender", HipChatMessage.Format.TEXT, null, true);
 
         HipChatMessage message = userAccount.render("watchId", "actionId", new MockTextTemplateEngine(), template, new HashMap<>());
         assertThat(message.color, is(nullValue()));
@@ -262,10 +259,8 @@ public class UserAccountTests extends ESTestCase {
                 .build();
         UserAccount userAccount = createUserAccount(settings);
 
-        TextTemplate body = new TextTemplate("body");
-        TextTemplate[] rooms = new TextTemplate[] { new TextTemplate("room") };
-        HipChatMessage.Template template = new HipChatMessage.Template(body, rooms, null, "sender", null,
-                new TextTemplate("yellow"), true);
+        HipChatMessage template = new HipChatMessage("body", new String[] {"rooms"}, null, "sender", null,
+                HipChatMessage.Color.YELLOW, true);
 
         HipChatMessage message = userAccount.render("watchId", "actionId", new MockTextTemplateEngine(), template, new HashMap<>());
         assertThat(message.format, is(nullValue()));
@@ -280,9 +275,9 @@ public class UserAccountTests extends ESTestCase {
         HttpClient httpClient = mock(HttpClient.class);
         UserAccount account = new UserAccount("notify-monitoring", settings, hipChatServer, httpClient, logger);
 
-        TextTemplate[] rooms = new TextTemplate[] { new TextTemplate("Room with Spaces")};
-        HipChatMessage.Template template =
-                new HipChatMessage.Template(new TextTemplate("body"), rooms, null, "sender", HipChatMessage.Format.TEXT, null, true);
+        String[] rooms = new String[] { "Room with Spaces"};
+        HipChatMessage template =
+                new HipChatMessage("body", rooms, null, "sender", HipChatMessage.Format.TEXT, null, true);
 
         HipChatMessage message = account.render("watchId", "actionId", new MockTextTemplateEngine(), template, new HashMap<>());
         account.send(message, HttpProxy.NO_PROXY);

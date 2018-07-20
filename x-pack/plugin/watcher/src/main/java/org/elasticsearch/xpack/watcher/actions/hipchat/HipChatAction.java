@@ -13,7 +13,6 @@ import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentParser;
 import org.elasticsearch.xpack.core.watcher.actions.Action;
 import org.elasticsearch.xpack.watcher.common.http.HttpProxy;
-import org.elasticsearch.xpack.watcher.common.text.TextTemplate;
 import org.elasticsearch.xpack.watcher.notification.hipchat.HipChatMessage;
 import org.elasticsearch.xpack.watcher.notification.hipchat.SentMessages;
 
@@ -26,9 +25,9 @@ public class HipChatAction implements Action {
 
     @Nullable final String account;
     @Nullable final HttpProxy proxy;
-    final HipChatMessage.Template message;
+    final HipChatMessage message;
 
-    public HipChatAction(@Nullable String account, HipChatMessage.Template message, @Nullable HttpProxy proxy) {
+    public HipChatAction(@Nullable String account, HipChatMessage message, @Nullable HttpProxy proxy) {
         this.account = account;
         this.message = message;
         this.proxy = proxy;
@@ -71,7 +70,7 @@ public class HipChatAction implements Action {
 
     public static HipChatAction parse(String watchId, String actionId, XContentParser parser) throws IOException {
         String account = null;
-        HipChatMessage.Template message = null;
+        HipChatMessage message = null;
         HttpProxy proxy = null;
 
         String currentFieldName = null;
@@ -90,7 +89,7 @@ public class HipChatAction implements Action {
                 proxy = HttpProxy.parse(parser);
             } else if (Field.MESSAGE.match(currentFieldName, parser.getDeprecationHandler())) {
                 try {
-                    message = HipChatMessage.Template.parse(parser);
+                    message = HipChatMessage.parse(parser);
                 } catch (Exception e) {
                     throw new ElasticsearchParseException("failed to parse [{}] action [{}/{}]. failed to parse [{}] field", e, TYPE,
                             watchId, actionId, Field.MESSAGE.getPreferredName());
@@ -109,7 +108,7 @@ public class HipChatAction implements Action {
         return new HipChatAction(account, message, proxy);
     }
 
-    public static Builder builder(String account, TextTemplate body) {
+    public static Builder builder(String account, String body) {
         return new Builder(account, body);
     }
 
@@ -175,39 +174,24 @@ public class HipChatAction implements Action {
     public static class Builder implements Action.Builder<HipChatAction> {
 
         final String account;
-        final HipChatMessage.Template.Builder messageBuilder;
+        final HipChatMessage.Builder messageBuilder;
         private HttpProxy proxy;
 
-        public Builder(String account, TextTemplate body) {
+        public Builder(String account, String body) {
             this.account = account;
-            this.messageBuilder = new HipChatMessage.Template.Builder(body);
+            this.messageBuilder = new HipChatMessage.Builder(body);
         }
 
-        public Builder addRooms(TextTemplate... rooms) {
+        public Builder addRooms(String... rooms) {
             messageBuilder.addRooms(rooms);
             return this;
         }
 
-        public Builder addRooms(String... rooms) {
-            TextTemplate[] templates = new TextTemplate[rooms.length];
-            for (int i = 0; i < rooms.length; i++) {
-                templates[i] = new TextTemplate(rooms[i]);
-            }
-            return addRooms(templates);
-        }
 
-
-        public Builder addUsers(TextTemplate... users) {
-            messageBuilder.addUsers(users);
-            return this;
-        }
 
         public Builder addUsers(String... users) {
-            TextTemplate[] templates = new TextTemplate[users.length];
-            for (int i = 0; i < users.length; i++) {
-                templates[i] = new TextTemplate(users[i]);
-            }
-            return addUsers(templates);
+            messageBuilder.addUsers(users);
+            return this;
         }
 
         public Builder setFrom(String from) {
@@ -220,13 +204,9 @@ public class HipChatAction implements Action {
             return this;
         }
 
-        public Builder setColor(TextTemplate color) {
+        public Builder setColor(HipChatMessage.Color color) {
             messageBuilder.setColor(color);
             return this;
-        }
-
-        public Builder setColor(HipChatMessage.Color color) {
-            return setColor(color.asTemplate());
         }
 
         public Builder setNotify(boolean notify) {

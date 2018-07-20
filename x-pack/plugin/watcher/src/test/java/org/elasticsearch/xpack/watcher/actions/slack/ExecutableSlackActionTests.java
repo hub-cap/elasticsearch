@@ -14,7 +14,6 @@ import org.elasticsearch.xpack.watcher.common.http.HttpClient;
 import org.elasticsearch.xpack.watcher.common.http.HttpProxy;
 import org.elasticsearch.xpack.watcher.common.http.HttpRequest;
 import org.elasticsearch.xpack.watcher.common.http.HttpResponse;
-import org.elasticsearch.xpack.watcher.common.text.TextTemplate;
 import org.elasticsearch.xpack.watcher.notification.slack.SlackAccount;
 import org.elasticsearch.xpack.watcher.notification.slack.SlackService;
 import org.elasticsearch.xpack.watcher.notification.slack.message.SlackMessage;
@@ -33,7 +32,7 @@ public class ExecutableSlackActionTests extends ESTestCase {
 
     public void testProxy() throws Exception {
         HttpProxy proxy = new HttpProxy("localhost", 8080);
-        SlackMessage.Template messageTemplate = SlackMessage.Template.builder().addTo("to").setText(new TextTemplate("content")).build();
+        SlackMessage messageTemplate = SlackMessage.builder().addTo("to").setText("content").build();
         SlackAction action = new SlackAction("account1", messageTemplate, proxy);
 
         HttpClient httpClient = mock(HttpClient.class);

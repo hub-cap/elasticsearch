@@ -20,27 +20,28 @@ import java.util.Map;
 public class DynamicAttachments implements MessageElement {
 
     private String listPath;
-    private Attachment.Template attachment;
+    private Attachment attachment;
 
-    public DynamicAttachments(String listPath, Attachment.Template attachment) {
+    public DynamicAttachments(String listPath, Attachment attachment) {
         this.listPath = listPath;
         this.attachment = attachment;
     }
 
-    public List<Attachment> render(TextTemplateEngine engine, Map<String, Object> model, SlackMessageDefaults.AttachmentDefaults defaults) {
-        Object value = ObjectPath.eval(listPath, model);
+    public static List<Attachment> render(TextTemplateEngine engine, Map<String, Object> model,
+                                          SlackMessageDefaults.AttachmentDefaults defaults, DynamicAttachments dynamicAttachments) {
+        Object value = ObjectPath.eval(dynamicAttachments.listPath, model);
         if (!(value instanceof Iterable)) {
-            throw new IllegalArgumentException("dynamic attachment could not be resolved. expected context [" + listPath + "] to be a " +
-                    "list, but found [" + value + "] instead");
+            throw new IllegalArgumentException("dynamic attachment could not be resolved. expected context ["
+                + dynamicAttachments.listPath + "] to be a list, but found [" + value + "] instead");
         }
         List<Attachment> attachments = new ArrayList<>();
         for (Object obj : (Iterable) value) {
             if (!(obj instanceof Map)) {
-                throw new IllegalArgumentException("dynamic attachment could not be resolved. expected [" + listPath + "] list to contain" +
-                        " key/value pairs, but found [" + obj + "] instead");
+                throw new IllegalArgumentException("dynamic attachment could not be resolved. expected ["
+                    + dynamicAttachments.listPath + "] list to contain key/value pairs, but found [" + obj + "] instead");
             }
             Map<String, Object> attachmentModel = (Map<String, Object>) obj;
-            attachments.add(attachment.render(engine, attachmentModel, defaults));
+            attachments.add(Attachment.render(engine, attachmentModel, defaults, dynamicAttachments.attachment));
         }
         return attachments;
     }
@@ -55,7 +56,7 @@ public class DynamicAttachments implements MessageElement {
 
     public static DynamicAttachments parse(XContentParser parser) throws IOException {
         String listPath = null;
-        Attachment.Template template = null;
+        Attachment template = null;
 
         String currentFieldName = null;
         XContentParser.Token token = null;
@@ -71,7 +72,7 @@ public class DynamicAttachments implements MessageElement {
                 }
             } else if (XField.TEMPLATE.match(currentFieldName, parser.getDeprecationHandler())) {
                 try {
-                    template = Attachment.Template.parse(parser);
+                    template = Attachment.parse(parser);
                 } catch (ElasticsearchParseException pe) {
                     throw new ElasticsearchParseException("could not parse dynamic attachments. failed to parse [{}] field", pe,
                             XField.TEMPLATE.getPreferredName());

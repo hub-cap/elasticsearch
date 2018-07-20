@@ -20,9 +20,9 @@ public class PagerDutyAction implements Action {
 
     public static final String TYPE = "pagerduty";
 
-    final IncidentEvent.Template event;
+    final IncidentEvent event;
 
-    public PagerDutyAction(IncidentEvent.Template event) {
+    public PagerDutyAction(IncidentEvent event) {
         this.event = event;
     }
 
@@ -51,11 +51,11 @@ public class PagerDutyAction implements Action {
     }
 
     public static PagerDutyAction parse(String watchId, String actionId, XContentParser parser) throws IOException {
-        IncidentEvent.Template eventTemplate = IncidentEvent.Template.parse(watchId, actionId, parser);
+        IncidentEvent eventTemplate = IncidentEvent.parse(watchId, actionId, parser);
         return new PagerDutyAction(eventTemplate);
     }
 
-    public static Builder builder(IncidentEvent.Template event) {
+    public static Builder builder(IncidentEvent event) {
         return new Builder(new PagerDutyAction(event));
     }
 

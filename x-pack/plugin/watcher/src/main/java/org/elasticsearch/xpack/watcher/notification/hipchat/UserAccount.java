@@ -17,6 +17,7 @@ import org.elasticsearch.xpack.watcher.common.http.HttpProxy;
 import org.elasticsearch.xpack.watcher.common.http.HttpRequest;
 import org.elasticsearch.xpack.watcher.common.http.HttpResponse;
 import org.elasticsearch.xpack.watcher.common.http.Scheme;
+import org.elasticsearch.xpack.watcher.common.text.TextTemplate;
 import org.elasticsearch.xpack.watcher.common.text.TextTemplateEngine;
 import org.elasticsearch.xpack.watcher.notification.hipchat.HipChatMessage.Color;
 import org.elasticsearch.xpack.watcher.notification.hipchat.HipChatMessage.Format;
@@ -46,7 +47,7 @@ public class UserAccount extends HipChatAccount {
     }
 
     @Override
-    public void validateParsedTemplate(String watchId, String actionId, HipChatMessage.Template template) throws SettingsException {
+    public void validateParsedTemplate(String watchId, String actionId, HipChatMessage template) throws SettingsException {
         if (template.from != null) {
             throw new ElasticsearchParseException("invalid [" + HipChatAction.TYPE + "] action for [" + watchId + "/" + actionId + "]. ["
                     + name + "] hipchat account doesn't support custom `from` fields");
@@ -54,24 +55,25 @@ public class UserAccount extends HipChatAccount {
     }
 
     @Override
-    public HipChatMessage render(String watchId, String actionId, TextTemplateEngine engine, HipChatMessage.Template template,
+    public HipChatMessage render(String watchId, String actionId, TextTemplateEngine engine, HipChatMessage template,
                                  Map<String, Object> model) {
         String[] rooms = defaults.rooms;
         if (template.rooms != null) {
             rooms = new String[template.rooms.length];
             for (int i = 0; i < template.rooms.length; i++) {
-                rooms[i] = engine.render(template.rooms[i], model);
+                rooms[i] = engine.render(new TextTemplate(template.rooms[i]), model);
             }
         }
         String[] users = defaults.users;
         if (template.users != null) {
             users = new String[template.users.length];
             for (int i = 0; i < template.users.length; i++) {
-                users[i] = engine.render(template.users[i], model);
+                users[i] = engine.render(new TextTemplate(template.users[i]), model);
             }
         }
-        String message = engine.render(template.body, model);
-        Color color = Color.resolve(engine.render(template.color, model), defaults.color);
+        String message = engine.render(new TextTemplate(template.body), model);
+        Color color = template.color == null ? defaults.color :
+            Color.resolve(engine.render(new TextTemplate(template.color.name()), model), defaults.color);
         Boolean notify = template.notify != null ? template.notify : defaults.notify;
         Format messageFormat = template.format != null ? template.format : defaults.format;
         return new HipChatMessage(message, rooms, users, null, messageFormat, color, notify);

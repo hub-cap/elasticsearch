@@ -64,10 +64,10 @@ public class HipChatActionTests extends ESTestCase {
 
         TextTemplateEngine templateEngine = mock(TextTemplateEngine.class);
 
-        TextTemplate body = new TextTemplate("_body");
-        HipChatMessage.Template.Builder messageBuilder = new HipChatMessage.Template.Builder(body);
+        String body = "_body";
+        HipChatMessage.Builder messageBuilder = new HipChatMessage.Builder(body);
 
-        HipChatMessage.Template messageTemplate = messageBuilder.build();
+        HipChatMessage messageTemplate = messageBuilder.build();
 
         HipChatAction action = new HipChatAction(accountName, messageTemplate, null);
         ExecutableHipChatAction executable = new ExecutableHipChatAction(action, logger, service, templateEngine);
@@ -101,11 +101,11 @@ public class HipChatActionTests extends ESTestCase {
         Map<String, Object> expectedModel = singletonMap("ctx", ctxModel);
 
         if (body != null) {
-            when(templateEngine.render(body, expectedModel)).thenReturn(body.getTemplate());
+            when(templateEngine.render(new TextTemplate(body), expectedModel)).thenReturn(body);
         }
 
         String[] rooms = new String[] { "_r1" };
-        HipChatMessage message = new HipChatMessage(body.getTemplate(), rooms, null, null, null, null, null);
+        HipChatMessage message = new HipChatMessage(body, rooms, null, null, null, null, null);
         HipChatAccount account = mock(HipChatAccount.class);
         when(account.render(wid.watchId(), "_id", templateEngine, messageTemplate, expectedModel)).thenReturn(message);
         boolean responseFailure = randomBoolean();
@@ -137,21 +137,21 @@ public class HipChatActionTests extends ESTestCase {
         builder.field("account", accountName);
         builder.startObject("message");
 
-        TextTemplate body = new TextTemplate("_body");
+        String body = "_body";
         builder.field("body", body);
 
-        TextTemplate[] rooms = null;
+        String[] rooms = null;
         if (randomBoolean()) {
-            TextTemplate r1 = new TextTemplate("_r1");
-            TextTemplate r2 = new TextTemplate("_r2");
-            rooms = new TextTemplate[] { r1, r2 };
+            String r1 = "_r1";
+            String r2 = "_r2";
+            rooms = new String[] { r1, r2 };
             builder.array("room", r1, r2);
         }
-        TextTemplate[] users = null;
+        String[] users = null;
         if (randomBoolean()) {
-            TextTemplate u1 = new TextTemplate("_u1");
-            TextTemplate u2 = new TextTemplate("_u2");
-            users = new TextTemplate[] { u1, u2 };
+            String u1 = "_u1";
+            String u2 = "_u2";
+            users = new String[] { u1, u2 };
             builder.array("user", u1, u2);
         }
         String from = null;
@@ -164,12 +164,12 @@ public class HipChatActionTests extends ESTestCase {
             format = randomFrom(HipChatMessage.Format.values());
             builder.field("format", format.value());
         }
-        TextTemplate color = null;
+        HipChatMessage.Color color = null;
         if (randomBoolean()) {
-            color = new TextTemplate(randomFrom(HipChatMessage.Color.values()).value());
+            color = randomFrom(HipChatMessage.Color.values());
             builder.field("color", color);
         }
-        Boolean notify = null;
+        boolean notify = false;
         if (randomBoolean()) {
             notify = randomBoolean();
             builder.field("notify", notify);
@@ -193,13 +193,13 @@ public class HipChatActionTests extends ESTestCase {
         assertThat(action.account, is(accountName));
         assertThat(action.proxy, is(proxy));
         assertThat(action.message, notNullValue());
-        assertThat(action.message, is(new HipChatMessage.Template(body, rooms, users, from, format, color, notify)));
+        assertThat(action.message, is(new HipChatMessage(body, rooms, users, from, format, color, notify)));
     }
 
     public void testParserSelfGenerated() throws Exception {
         String accountName = randomAlphaOfLength(10);
-        TextTemplate body = new TextTemplate("_body");
-        HipChatMessage.Template.Builder templateBuilder = new HipChatMessage.Template.Builder(body);
+        String body = "_body";
+        HipChatMessage.Builder templateBuilder = new HipChatMessage.Builder(body);
 
         XContentBuilder builder = jsonBuilder().startObject();
         builder.field("account", accountName);
@@ -214,14 +214,14 @@ public class HipChatActionTests extends ESTestCase {
         builder.field("body", body);
 
         if (randomBoolean()) {
-            TextTemplate r1 = new TextTemplate("_r1");
-            TextTemplate r2 = new TextTemplate("_r2");
+            String r1 = "_r1";
+            String r2 = "_r2";
             templateBuilder.addRooms(r1, r2);
             builder.array("room", r1, r2);
         }
         if (randomBoolean()) {
-            TextTemplate u1 = new TextTemplate("_u1");
-            TextTemplate u2 = new TextTemplate("_u2");
+            String u1 = "_u1";
+            String u2 = "_u2";
             templateBuilder.addUsers(u1, u2);
             builder.array("user", u1, u2);
         }
@@ -236,7 +236,7 @@ public class HipChatActionTests extends ESTestCase {
             builder.field("format", format.value());
         }
         if (randomBoolean()) {
-            TextTemplate color = new TextTemplate(randomFrom(HipChatMessage.Color.values()).value());
+            HipChatMessage.Color color = randomFrom(HipChatMessage.Color.values());
             templateBuilder.setColor(color);
             builder.field("color", color);
         }
@@ -249,7 +249,7 @@ public class HipChatActionTests extends ESTestCase {
         builder.endObject();
         builder.endObject();
 
-        HipChatMessage.Template template = templateBuilder.build();
+        HipChatMessage template = templateBuilder.build();
 
         HipChatAction action = new HipChatAction(accountName, template, proxy);
 

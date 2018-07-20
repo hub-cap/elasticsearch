@@ -12,7 +12,6 @@ import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.xcontent.ToXContentObject;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentParser;
-import org.elasticsearch.xpack.watcher.common.text.TextTemplate;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -132,249 +131,161 @@ public class HipChatMessage implements ToXContentObject {
         return builder.endObject();
     }
 
-    public static class Template implements ToXContentObject {
+    public static HipChatMessage parse(XContentParser parser) throws IOException {
+        String body = null;
+        String[] rooms = null;
+        String[] users = null;
+        String from = null;
+        Color color = null;
+        boolean notify = false;
+        HipChatMessage.Format messageFormat = null;
 
-        final TextTemplate body;
-        @Nullable final TextTemplate[] rooms;
-        @Nullable final TextTemplate[] users;
-        @Nullable final String from;
-        @Nullable final Format format;
-        @Nullable final TextTemplate color;
-        @Nullable final Boolean notify;
-
-        public Template(TextTemplate body,
-                        TextTemplate[] rooms,
-                        TextTemplate[] users,
-                        String from,
-                        Format format,
-                        TextTemplate color,
-                        Boolean notify) {
-            this.rooms = rooms;
-            this.users = users;
-            this.body = body;
-            this.from = from;
-            this.format = format;
-            this.color = color;
-            this.notify = notify;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
-
-            Template template = (Template) o;
-
-            return Objects.equals(body, template.body) &&
-                   Objects.deepEquals(rooms, template.rooms) &&
-                   Objects.deepEquals(users, template.users) &&
-                   Objects.equals(from, template.from) &&
-                   Objects.equals(format, template.format) &&
-                   Objects.equals(color, template.color) &&
-                   Objects.equals(notify, template.notify);
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(body, rooms, users, from, format, color, notify);
-        }
-
-        @Override
-        public XContentBuilder toXContent(XContentBuilder builder, Params params) throws IOException {
-            builder.startObject();
-            if (from != null) {
-                builder.field(Field.FROM.getPreferredName(), from);
-            }
-            if (rooms != null && rooms.length > 0) {
-                builder.startArray(Field.ROOM.getPreferredName());
-                for (TextTemplate room : rooms) {
-                    room.toXContent(builder, params);
-                }
-                builder.endArray();
-            }
-            if (users != null && users.length > 0) {
-                builder.startArray(Field.USER.getPreferredName());
-                for (TextTemplate user : users) {
-                    user.toXContent(builder, params);
-                }
-                builder.endArray();
-            }
-            builder.field(Field.BODY.getPreferredName(), body, params);
-            if (format != null) {
-                builder.field(Field.FORMAT.getPreferredName(), format.value());
-            }
-            if (color != null) {
-                builder.field(Field.COLOR.getPreferredName(), color, params);
-            }
-            if (notify != null) {
-                builder.field(Field.NOTIFY.getPreferredName(), notify);
-            }
-            return builder.endObject();
-        }
-
-        public static Template parse(XContentParser parser) throws IOException {
-            TextTemplate body = null;
-            TextTemplate[] rooms = null;
-            TextTemplate[] users = null;
-            String from = null;
-            TextTemplate color = null;
-            Boolean notify = null;
-            HipChatMessage.Format messageFormat = null;
-
-            String currentFieldName = null;
-            XContentParser.Token token;
-            while ((token = parser.nextToken()) != XContentParser.Token.END_OBJECT) {
-                if (token == XContentParser.Token.FIELD_NAME) {
-                    currentFieldName = parser.currentName();
-                } else if (Field.FROM.match(currentFieldName, parser.getDeprecationHandler())) {
-                    from = parser.text();
-                } else if (Field.ROOM.match(currentFieldName, parser.getDeprecationHandler())) {
-                    List<TextTemplate> templates = new ArrayList<>();
-                    if (token == XContentParser.Token.START_ARRAY) {
-                        while ((token = parser.nextToken()) != XContentParser.Token.END_ARRAY) {
-                            try {
-                                templates.add(TextTemplate.parse(parser));
-                            } catch (ElasticsearchParseException epe) {
-                                throw new ElasticsearchParseException("failed to parse hipchat message. failed to parse [{}] field", epe,
-                                        Field.ROOM.getPreferredName());
-                            }
-                        }
-                    } else {
+        String currentFieldName = null;
+        XContentParser.Token token;
+        while ((token = parser.nextToken()) != XContentParser.Token.END_OBJECT) {
+            if (token == XContentParser.Token.FIELD_NAME) {
+                currentFieldName = parser.currentName();
+            } else if (Field.FROM.match(currentFieldName, parser.getDeprecationHandler())) {
+                from = parser.text();
+            } else if (Field.ROOM.match(currentFieldName, parser.getDeprecationHandler())) {
+                List<String> templates = new ArrayList<>();
+                if (token == XContentParser.Token.START_ARRAY) {
+                    while ((token = parser.nextToken()) != XContentParser.Token.END_ARRAY) {
                         try {
-                            templates.add(TextTemplate.parse(parser));
+                            templates.add(parser.text());
                         } catch (ElasticsearchParseException epe) {
                             throw new ElasticsearchParseException("failed to parse hipchat message. failed to parse [{}] field", epe,
-                                    Field.ROOM.getPreferredName());
+                                Field.ROOM.getPreferredName());
                         }
-                    }
-                    rooms = templates.toArray(new TextTemplate[templates.size()]);
-                } else if (Field.USER.match(currentFieldName, parser.getDeprecationHandler())) {
-                    List<TextTemplate> templates = new ArrayList<>();
-                    if (token == XContentParser.Token.START_ARRAY) {
-                        while ((token = parser.nextToken()) != XContentParser.Token.END_ARRAY) {
-                            try {
-                                templates.add(TextTemplate.parse(parser));
-                            } catch (ElasticsearchParseException epe) {
-                                throw new ElasticsearchParseException("failed to parse hipchat message. failed to parse [{}] field", epe,
-                                        Field.USER.getPreferredName());
-                            }
-                        }
-                    } else {
-                        try {
-                            templates.add(TextTemplate.parse(parser));
-                        } catch (ElasticsearchParseException epe) {
-                            throw new ElasticsearchParseException("failed to parse hipchat message. failed to parse [{}] field", epe,
-                                    Field.USER.getPreferredName());
-                        }
-                    }
-                    users = templates.toArray(new TextTemplate[templates.size()]);
-                } else if (Field.COLOR.match(currentFieldName, parser.getDeprecationHandler())) {
-                    try {
-                        color = TextTemplate.parse(parser);
-                    } catch (ElasticsearchParseException | IllegalArgumentException e) {
-                        throw new ElasticsearchParseException("failed to parse hipchat message. failed to parse [{}] field", e,
-                                Field.COLOR.getPreferredName());
-                    }
-                } else if (Field.NOTIFY.match(currentFieldName, parser.getDeprecationHandler())) {
-                    if (token == XContentParser.Token.VALUE_BOOLEAN) {
-                        notify = parser.booleanValue();
-                    } else {
-                        throw new ElasticsearchParseException("failed to parse hipchat message. failed to parse [{}] field, expected a " +
-                                "boolean value but found [{}]", Field.NOTIFY.getPreferredName(), token);
-                    }
-                } else if (Field.BODY.match(currentFieldName, parser.getDeprecationHandler())) {
-                    try {
-                        body = TextTemplate.parse(parser);
-                    } catch (ElasticsearchParseException pe) {
-                        throw new ElasticsearchParseException("failed to parse hipchat message. failed to parse [{}] field", pe,
-                                Field.BODY.getPreferredName());
-                    }
-                } else if (Field.FORMAT.match(currentFieldName, parser.getDeprecationHandler())) {
-                    try {
-                        messageFormat = HipChatMessage.Format.parse(parser);
-                    } catch (IllegalArgumentException ilae) {
-                        throw new ElasticsearchParseException("failed to parse hipchat message. failed to parse [{}] field", ilae,
-                                Field.FORMAT.getPreferredName());
                     }
                 } else {
-                    throw new ElasticsearchParseException("failed to parse hipchat message. unexpected field [{}]", currentFieldName);
+                    try {
+                        templates.add(parser.text());
+                    } catch (ElasticsearchParseException epe) {
+                        throw new ElasticsearchParseException("failed to parse hipchat message. failed to parse [{}] field", epe,
+                            Field.ROOM.getPreferredName());
+                    }
                 }
-            }
-
-            if (body == null) {
-                throw new ElasticsearchParseException("failed to parse hipchat message. missing required [{}] field",
+                rooms = templates.toArray(new String[templates.size()]);
+            } else if (Field.USER.match(currentFieldName, parser.getDeprecationHandler())) {
+                List<String> templates = new ArrayList<>();
+                if (token == XContentParser.Token.START_ARRAY) {
+                    while ((token = parser.nextToken()) != XContentParser.Token.END_ARRAY) {
+                        try {
+                            templates.add(parser.text());
+                        } catch (ElasticsearchParseException epe) {
+                            throw new ElasticsearchParseException("failed to parse hipchat message. failed to parse [{}] field", epe,
+                                Field.USER.getPreferredName());
+                        }
+                    }
+                } else {
+                    try {
+                        templates.add(parser.text());
+                    } catch (ElasticsearchParseException epe) {
+                        throw new ElasticsearchParseException("failed to parse hipchat message. failed to parse [{}] field", epe,
+                            Field.USER.getPreferredName());
+                    }
+                }
+                users = templates.toArray(new String[templates.size()]);
+            } else if (Field.COLOR.match(currentFieldName, parser.getDeprecationHandler())) {
+                try {
+                    color = Color.resolve(parser.text(), null);
+                } catch (ElasticsearchParseException | IllegalArgumentException e) {
+                    throw new ElasticsearchParseException("failed to parse hipchat message. failed to parse [{}] field", e,
+                        Field.COLOR.getPreferredName());
+                }
+            } else if (Field.NOTIFY.match(currentFieldName, parser.getDeprecationHandler())) {
+                if (token == XContentParser.Token.VALUE_BOOLEAN) {
+                    notify = parser.booleanValue();
+                } else {
+                    throw new ElasticsearchParseException("failed to parse hipchat message. failed to parse [{}] field, expected a " +
+                        "boolean value but found [{}]", Field.NOTIFY.getPreferredName(), token);
+                }
+            } else if (Field.BODY.match(currentFieldName, parser.getDeprecationHandler())) {
+                try {
+                    body = parser.text();
+                } catch (ElasticsearchParseException pe) {
+                    throw new ElasticsearchParseException("failed to parse hipchat message. failed to parse [{}] field", pe,
                         Field.BODY.getPreferredName());
+                }
+            } else if (Field.FORMAT.match(currentFieldName, parser.getDeprecationHandler())) {
+                try {
+                    messageFormat = HipChatMessage.Format.parse(parser);
+                } catch (IllegalArgumentException ilae) {
+                    throw new ElasticsearchParseException("failed to parse hipchat message. failed to parse [{}] field", ilae,
+                        Field.FORMAT.getPreferredName());
+                }
+            } else {
+                throw new ElasticsearchParseException("failed to parse hipchat message. unexpected field [{}]", currentFieldName);
             }
-
-            return new HipChatMessage.Template(body, rooms, users, from, messageFormat, color, notify);
         }
 
-        public static class Builder {
+        if (body == null) {
+            throw new ElasticsearchParseException("failed to parse hipchat message. missing required [{}] field",
+                Field.BODY.getPreferredName());
+        }
 
-            final TextTemplate body;
-            final List<TextTemplate> rooms = new ArrayList<>();
-            final List<TextTemplate> users = new ArrayList<>();
-            @Nullable String from;
-            @Nullable Format format;
-            @Nullable TextTemplate color;
-            @Nullable Boolean notify;
+        return new HipChatMessage(body, rooms, users, from, messageFormat, color, notify);
+    }
 
-            public Builder(TextTemplate body) {
-                this.body = body;
-            }
+    public static class Builder {
 
-            public Builder addRooms(TextTemplate... rooms) {
-                this.rooms.addAll(Arrays.asList(rooms));
-                return this;
-            }
+        final String body;
+        final List<String> rooms = new ArrayList<>();
+        final List<String> users = new ArrayList<>();
+        @Nullable String from;
+        @Nullable Format format;
+        @Nullable Color color;
+        @Nullable boolean notify;
 
-            public Builder addUsers(TextTemplate... users) {
-                this.users.addAll(Arrays.asList(users));
-                return this;
-            }
+        public Builder(String body) {
+            this.body = body;
+        }
 
-            public Builder setFrom(String from) {
-                this.from = from;
-                return this;
-            }
+        public Builder addRooms(String... rooms) {
+            this.rooms.addAll(Arrays.asList(rooms));
+            return this;
+        }
 
-            public Builder setFormat(Format format) {
-                this.format = format;
-                return this;
-            }
+        public Builder addUsers(String... users) {
+            this.users.addAll(Arrays.asList(users));
+            return this;
+        }
 
-            public Builder setColor(TextTemplate color) {
-                this.color = color;
-                return this;
-            }
+        public Builder setFrom(String from) {
+            this.from = from;
+            return this;
+        }
 
-            public Builder setNotify(boolean notify) {
-                this.notify = notify;
-                return this;
-            }
+        public Builder setFormat(Format format) {
+            this.format = format;
+            return this;
+        }
 
-            public Template build() {
-                return new Template(
-                        body,
-                        rooms.isEmpty() ? null : rooms.toArray(new TextTemplate[rooms.size()]),
-                        users.isEmpty() ? null : users.toArray(new TextTemplate[users.size()]),
-                        from,
-                        format,
-                        color,
-                        notify);
-            }
+        public Builder setColor(Color color) {
+            this.color = color;
+            return this;
+        }
+
+        public Builder setNotify(boolean notify) {
+            this.notify = notify;
+            return this;
+        }
+
+        public HipChatMessage build() {
+            return new HipChatMessage(
+                body,
+                rooms.isEmpty() ? null : rooms.toArray(new String[rooms.size()]),
+                users.isEmpty() ? null : users.toArray(new String[users.size()]),
+                from,
+                format,
+                color,
+                notify);
         }
     }
 
-
     public enum Color {
         YELLOW, GREEN, RED, PURPLE, GRAY, RANDOM;
-
-        private final TextTemplate template = new TextTemplate(name());
-
-        public TextTemplate asTemplate() {
-            return template;
-        }
 
         public String value() {
             return name().toLowerCase(Locale.ROOT);
@@ -409,12 +320,6 @@ public class HipChatMessage implements ToXContentObject {
 
         TEXT,
         HTML;
-
-        private final TextTemplate template = new TextTemplate(name());
-
-        public TextTemplate asTemplate() {
-            return template;
-        }
 
         public String value() {
             return name().toLowerCase(Locale.ROOT);

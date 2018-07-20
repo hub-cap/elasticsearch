@@ -8,6 +8,7 @@ package org.elasticsearch.xpack.watcher.actions.slack;
 import org.elasticsearch.ElasticsearchParseException;
 import org.elasticsearch.common.bytes.BytesReference;
 import org.elasticsearch.common.collect.MapBuilder;
+import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.xcontent.ToXContent;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentParser;
@@ -37,7 +38,6 @@ import java.util.List;
 import java.util.Map;
 
 import static java.util.Collections.emptyMap;
-import static java.util.Collections.singletonMap;
 import static org.elasticsearch.common.xcontent.XContentFactory.jsonBuilder;
 import static org.elasticsearch.xpack.watcher.test.WatcherTestUtils.mockExecutionContextBuilder;
 import static org.hamcrest.Matchers.equalTo;
@@ -63,7 +63,7 @@ public class SlackActionTests extends ESTestCase {
 
         TextTemplateEngine templateEngine = mock(TextTemplateEngine.class);
 
-        SlackMessage.Template messageTemplate = mock(SlackMessage.Template.class);
+        SlackMessage messageTemplate = mock(SlackMessage.class);
         SlackMessage message = mock(SlackMessage.class);
 
         SlackAction action = new SlackAction(accountName, messageTemplate, null);
@@ -95,13 +95,17 @@ public class SlackActionTests extends ESTestCase {
         ctxModel.put("execution_time", now);
         ctxModel.put("trigger", triggerModel);
         ctxModel.put("vars", emptyMap());
-        Map<String, Object> expectedModel = singletonMap("ctx", ctxModel);
+        //Map<String, Object> expectedModel = singletonMap("ctx", ctxModel);
 
-        when(messageTemplate.render(eq(wid.watchId()), eq("_action"), eq(templateEngine), eq(expectedModel),
-                any(SlackMessageDefaults.class))).thenReturn(message);
+//        when(messageTemplate.render(eq(wid.watchId()), eq("_action"), eq(templateEngine), eq(expectedModel),
+//                any(SlackMessageDefaults.class), messageTemplate)).thenReturn(message);
         SlackAccount account = mock(SlackAccount.class);
         when(service.getAccount(accountName)).thenReturn(account);
-
+        when(account.getMessageDefaults()).thenReturn(new SlackMessageDefaults(
+            Settings.builder()
+                .put("from", "from")
+                .put("text", "text")
+                .build()));
 
         List<SentMessages.SentMessage> messages = new ArrayList<>();
         boolean hasError = false;
@@ -147,7 +151,7 @@ public class SlackActionTests extends ESTestCase {
         XContentBuilder builder = jsonBuilder().startObject();
 
         String accountName = randomAlphaOfLength(10);
-        SlackMessage.Template message = SlackMessageTests.createRandomTemplate();
+        SlackMessage message = SlackMessageTests.createRandomTemplate();
 
         builder.field("account", accountName);
         builder.field("message", message, ToXContent.EMPTY_PARAMS);
@@ -168,7 +172,7 @@ public class SlackActionTests extends ESTestCase {
 
     public void testParserSelfGenerated() throws Exception {
         String accountName = randomBoolean() ? randomAlphaOfLength(10) : null;
-        SlackMessage.Template message = SlackMessageTests.createRandomTemplate();
+        SlackMessage message = SlackMessageTests.createRandomTemplate();
 
         HttpProxy proxy = null;
         if (randomBoolean()) {

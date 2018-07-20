@@ -62,12 +62,12 @@ public class PagerDutyActionTests extends ESTestCase {
 
         TextTemplateEngine templateEngine = mock(TextTemplateEngine.class);
 
-        TextTemplate description = new TextTemplate("_description");
-        IncidentEvent.Template.Builder eventBuilder = new IncidentEvent.Template.Builder(description);
+        String description = new String("_description");
+        IncidentEvent.Builder eventBuilder = new IncidentEvent.Builder(description);
         boolean attachPayload = randomBoolean();
         eventBuilder.setAttachPayload(attachPayload);
         eventBuilder.setAccount(accountName);
-        IncidentEvent.Template eventTemplate = eventBuilder.build();
+        IncidentEvent eventTemplate = eventBuilder.build();
 
         PagerDutyAction action = new PagerDutyAction(eventTemplate);
         ExecutablePagerDutyAction executable = new ExecutablePagerDutyAction(action, logger, service, templateEngine);
@@ -101,9 +101,9 @@ public class PagerDutyActionTests extends ESTestCase {
         Map<String, Object> expectedModel = new HashMap<>();
         expectedModel.put("ctx", ctxModel);
 
-        when(templateEngine.render(description, expectedModel)).thenReturn(description.getTemplate());
+        when(templateEngine.render(new TextTemplate(description), expectedModel)).thenReturn(description);
 
-        IncidentEvent event = new IncidentEvent(description.getTemplate(), null, wid.watchId(), null, null, accountName, attachPayload,
+        IncidentEvent event = new IncidentEvent(description, null, wid.watchId(), null, null, accountName, attachPayload,
                 null, null);
         PagerDutyAccount account = mock(PagerDutyAccount.class);
         when(account.getDefaults()).thenReturn(new IncidentEventDefaults(Settings.EMPTY));
@@ -129,39 +129,36 @@ public class PagerDutyActionTests extends ESTestCase {
         String accountName = randomAlphaOfLength(10);
         builder.field("account", accountName);
 
-        TextTemplate incidentKey = null;
+        String incidentKey = null;
         if (randomBoolean()) {
-            incidentKey = new TextTemplate("_incident_key");
+            incidentKey = "_incident_key";
             builder.field("incident_key", incidentKey);
         }
 
-        TextTemplate description = null;
-        if (randomBoolean()) {
-            description = new TextTemplate("_description");
-            builder.field("description", description);
-        }
+        String description = "_description";
+        builder.field("description", description);
 
-        TextTemplate client = null;
+        String client = null;
         if (randomBoolean()) {
-            client = new TextTemplate("_client");
+            client = "_client";
             builder.field("client", client);
         }
 
-        TextTemplate clientUrl = null;
+        String clientUrl = null;
         if (randomBoolean()) {
-            clientUrl = new TextTemplate("_client_url");
+            clientUrl = "_client_url";
             builder.field("client_url", clientUrl);
         }
 
-        TextTemplate eventType = null;
+        String eventType = null;
         if (randomBoolean()) {
-            eventType = new TextTemplate(randomFrom("trigger", "resolve", "acknowledge"));
+            eventType = randomFrom("trigger", "resolve", "acknowledge");
             builder.field("event_type", eventType);
         }
 
-        Boolean attachPayload = randomBoolean() ? null : randomBoolean();
-        if (attachPayload != null) {
-            builder.field("attach_payload", attachPayload.booleanValue());
+        boolean attachPayload = randomBoolean();
+        if (attachPayload) {
+            builder.field("attach_payload", attachPayload);
         }
 
         HttpProxy proxy = null;
@@ -170,11 +167,11 @@ public class PagerDutyActionTests extends ESTestCase {
             proxy.toXContent(builder, ToXContent.EMPTY_PARAMS);
         }
 
-        IncidentEventContext.Template[] contexts = null;
+        IncidentEventContext[] contexts = null;
         if (randomBoolean()) {
-            contexts = new IncidentEventContext.Template[] {
-                    IncidentEventContext.Template.link(new TextTemplate("_href"), new TextTemplate("_text")),
-                    IncidentEventContext.Template.image(new TextTemplate("_src"), new TextTemplate("_href"), new TextTemplate("_alt"))
+            contexts = new IncidentEventContext[] {
+                    IncidentEventContext.link("_href", "_text"),
+                    IncidentEventContext.image("_src", "_href", "_alt")
             };
             String fieldName = randomBoolean() ? "contexts" : "context";
             builder.array(fieldName, (Object) contexts);
@@ -190,40 +187,39 @@ public class PagerDutyActionTests extends ESTestCase {
         PagerDutyAction action = PagerDutyAction.parse("_watch", "_action", parser);
 
         assertThat(action, notNullValue());
-        assertThat(action.event.account, is(accountName));
+        assertThat(action.event.getAccount(), is(accountName));
         assertThat(action.event, notNullValue());
-        assertThat(action.event, instanceOf(IncidentEvent.Template.class));
-        assertThat(action.event, is(new IncidentEvent.Template(description, eventType, incidentKey, client, clientUrl, accountName,
+        assertThat(action.event, instanceOf(IncidentEvent.class));
+        assertThat(action.event, is(new IncidentEvent(description, eventType, incidentKey, client, clientUrl, accountName,
                 attachPayload, contexts, proxy)));
     }
 
     public void testParserSelfGenerated() throws Exception {
-        IncidentEvent.Template.Builder event = IncidentEvent.templateBuilder(randomAlphaOfLength(50));
+        IncidentEvent.Builder event = IncidentEvent.templateBuilder(randomAlphaOfLength(50));
 
         if (randomBoolean()) {
-            event.setIncidentKey(new TextTemplate(randomAlphaOfLength(50)));
+            event.setIncidentKey(randomAlphaOfLength(50));
         }
         if (randomBoolean()) {
-            event.setClient(new TextTemplate(randomAlphaOfLength(50)));
+            event.setClient(randomAlphaOfLength(50));
         }
         if (randomBoolean()) {
-            event.setClientUrl(new TextTemplate(randomAlphaOfLength(50)));
+            event.setClientUrl(randomAlphaOfLength(50));
         }
         if (randomBoolean()) {
             event.setAttachPayload(randomBoolean());
         }
         if (randomBoolean()) {
-            event.addContext(IncidentEventContext.Template.link(new TextTemplate("_href"), new TextTemplate("_text")));
+            event.addContext(IncidentEventContext.link("_href", "_text"));
         }
         if (randomBoolean()) {
-            event.addContext(IncidentEventContext.Template.image(new TextTemplate("_src"), new TextTemplate("_href"),
-                    new TextTemplate("_alt")));
+            event.addContext(IncidentEventContext.image("_src", "_href","_alt"));
         }
         if (randomBoolean()) {
-            event.setEventType(new TextTemplate(randomAlphaOfLength(50)));
+            event.setEventType(randomAlphaOfLength(50));
         }
         if (randomBoolean()) {
-            event.setAccount(randomAlphaOfLength(50)).build();
+            event.setAccount(randomAlphaOfLength(50));
         }
         if (randomBoolean()) {
             event.setProxy(new HttpProxy("localhost", 8080));

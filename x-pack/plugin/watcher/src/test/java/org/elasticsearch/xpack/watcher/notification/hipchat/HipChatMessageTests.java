@@ -17,7 +17,6 @@ import org.elasticsearch.test.ESTestCase;
 import org.elasticsearch.xpack.core.watcher.support.xcontent.WatcherParams;
 import org.elasticsearch.xpack.watcher.common.http.HttpRequest;
 import org.elasticsearch.xpack.watcher.common.http.HttpResponse;
-import org.elasticsearch.xpack.watcher.common.text.TextTemplate;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -168,25 +167,25 @@ public class HipChatMessageTests extends ESTestCase {
         XContentBuilder jsonBuilder = jsonBuilder();
         jsonBuilder.startObject();
 
-        TextTemplate body = new TextTemplate(randomAlphaOfLength(200));
-        jsonBuilder.field("body", body, ToXContent.EMPTY_PARAMS);
-        TextTemplate[] rooms = null;
+        String body = randomAlphaOfLength(200);
+        jsonBuilder.field("body", body);
+        String[] rooms = null;
         if (randomBoolean()) {
             jsonBuilder.startArray("room");
-            rooms = new TextTemplate[randomIntBetween(1, 3)];
+            rooms = new String[randomIntBetween(1, 3)];
             for (int i = 0; i < rooms.length; i++) {
-                rooms[i] = new TextTemplate(randomAlphaOfLength(10));
-                rooms[i].toXContent(jsonBuilder, ToXContent.EMPTY_PARAMS);
+                rooms[i] = randomAlphaOfLength(10);
+                jsonBuilder.value(rooms[i]);
             }
             jsonBuilder.endArray();
         }
-        TextTemplate[] users = null;
+        String[] users = null;
         if (randomBoolean()) {
             jsonBuilder.startArray("user");
-            users = new TextTemplate[randomIntBetween(1, 3)];
+            users = new String[randomIntBetween(1, 3)];
             for (int i = 0; i < users.length; i++) {
-                users[i] = new TextTemplate(randomAlphaOfLength(10));
-                users[i].toXContent(jsonBuilder, ToXContent.EMPTY_PARAMS);
+                users[i] = randomAlphaOfLength(10);
+                jsonBuilder.value(users[i]);
             }
             jsonBuilder.endArray();
         }
@@ -195,17 +194,17 @@ public class HipChatMessageTests extends ESTestCase {
             from = randomAlphaOfLength(10);
             jsonBuilder.field("from", from);
         }
-        TextTemplate color = null;
+        HipChatMessage.Color color = null;
         if (randomBoolean()) {
-            color = new TextTemplate(randomAlphaOfLength(10));
-            jsonBuilder.field("color", color, ToXContent.EMPTY_PARAMS);
+            color = randomFrom(HipChatMessage.Color.values());
+            jsonBuilder.field("color", color.value());
         }
         HipChatMessage.Format format = null;
         if (randomBoolean()) {
             format = randomFrom(HipChatMessage.Format.values());
             jsonBuilder.field("format", format.value());
         }
-        Boolean notify = null;
+        boolean notify = false;
         if (randomBoolean()) {
             notify = randomBoolean();
             jsonBuilder.field("notify", notify);
@@ -215,7 +214,7 @@ public class HipChatMessageTests extends ESTestCase {
         XContentParser parser = createParser(JsonXContent.jsonXContent, bytes);
         parser.nextToken();
 
-        HipChatMessage.Template template = HipChatMessage.Template.parse(parser);
+        HipChatMessage template = HipChatMessage.parse(parser);
 
         assertThat(template, notNullValue());
         assertThat(template.body, is(body));
@@ -236,26 +235,26 @@ public class HipChatMessageTests extends ESTestCase {
     }
 
     public void testTemplateParseSelfGenerated() throws Exception {
-        TextTemplate body = new TextTemplate(randomAlphaOfLength(10));
-        HipChatMessage.Template.Builder templateBuilder = new HipChatMessage.Template.Builder(body);
+        String body = randomAlphaOfLength(10);
+        HipChatMessage.Builder templateBuilder = new HipChatMessage.Builder(body);
 
         if (randomBoolean()) {
             int count = randomIntBetween(1, 3);
             for (int i = 0; i < count; i++) {
-                templateBuilder.addRooms(new TextTemplate(randomAlphaOfLength(10)));
+                templateBuilder.addRooms(randomAlphaOfLength(10));
             }
         }
         if (randomBoolean()) {
             int count = randomIntBetween(1, 3);
             for (int i = 0; i < count; i++) {
-                templateBuilder.addUsers(new TextTemplate(randomAlphaOfLength(10)));
+                templateBuilder.addUsers(randomAlphaOfLength(10));
             }
         }
         if (randomBoolean()) {
             templateBuilder.setFrom(randomAlphaOfLength(10));
         }
         if (randomBoolean()) {
-            templateBuilder.setColor(new TextTemplate(randomAlphaOfLength(5)));
+            templateBuilder.setColor(randomFrom(HipChatMessage.Color.values()));
         }
         if (randomBoolean()) {
             templateBuilder.setFormat(randomFrom(HipChatMessage.Format.values()));
@@ -263,7 +262,7 @@ public class HipChatMessageTests extends ESTestCase {
         if (randomBoolean()) {
             templateBuilder.setNotify(randomBoolean());
         }
-        HipChatMessage.Template template = templateBuilder.build();
+        HipChatMessage template = templateBuilder.build();
 
         XContentBuilder jsonBuilder = jsonBuilder();
         template.toXContent(jsonBuilder, ToXContent.EMPTY_PARAMS);
@@ -272,7 +271,7 @@ public class HipChatMessageTests extends ESTestCase {
         XContentParser parser = createParser(JsonXContent.jsonXContent, bytes);
         parser.nextToken();
 
-        HipChatMessage.Template parsed = HipChatMessage.Template.parse(parser);
+        HipChatMessage parsed = HipChatMessage.parse(parser);
 
         assertThat(parsed, equalTo(template));
     }

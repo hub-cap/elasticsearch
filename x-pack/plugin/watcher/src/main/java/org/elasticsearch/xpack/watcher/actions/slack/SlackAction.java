@@ -23,11 +23,11 @@ public class SlackAction implements Action {
 
     public static final String TYPE = "slack";
 
-    final SlackMessage.Template message;
+    final SlackMessage message;
     @Nullable final String account;
     @Nullable final HttpProxy proxy;
 
-    public SlackAction(@Nullable String account, SlackMessage.Template message, HttpProxy proxy) {
+    public SlackAction(@Nullable String account, SlackMessage message, HttpProxy proxy) {
         this.account = account;
         this.message = message;
         this.proxy = proxy;
@@ -70,7 +70,7 @@ public class SlackAction implements Action {
 
     public static SlackAction parse(String watchId, String actionId, XContentParser parser) throws IOException {
         String account = null;
-        SlackMessage.Template message = null;
+        SlackMessage message = null;
         HttpProxy proxy = null;
 
         String currentFieldName = null;
@@ -89,7 +89,7 @@ public class SlackAction implements Action {
                 proxy = HttpProxy.parse(parser);
             } else if (Field.MESSAGE.match(currentFieldName, parser.getDeprecationHandler())) {
                 try {
-                    message = SlackMessage.Template.parse(parser);
+                    message = SlackMessage.parse(parser);
                 } catch (Exception e) {
                     throw new ElasticsearchParseException("failed to parse [{}] action [{}/{}]. failed to parse [{}] field", e, TYPE,
                             watchId, actionId, Field.MESSAGE.getPreferredName());
@@ -108,7 +108,7 @@ public class SlackAction implements Action {
         return new SlackAction(account, message, proxy);
     }
 
-    public static Builder builder(String account, SlackMessage.Template message) {
+    public static Builder builder(String account, SlackMessage message) {
         return new Builder(new SlackAction(account, message, null));
     }
 

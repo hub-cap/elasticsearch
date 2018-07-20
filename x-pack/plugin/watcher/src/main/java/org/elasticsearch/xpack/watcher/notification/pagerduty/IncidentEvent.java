@@ -69,6 +69,8 @@ public class IncidentEvent implements ToXContentObject {
         this.eventType = Strings.hasLength(eventType) ? eventType : "trigger";
     }
 
+    public String getAccount() { return account; }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -137,6 +139,9 @@ public class IncidentEvent implements ToXContentObject {
     public XContentBuilder toXContent(XContentBuilder builder, ToXContent.Params params) throws IOException {
         builder.startObject();
         builder.field(Fields.DESCRIPTION.getPreferredName(), description);
+        if (eventType != null) {
+            builder.field(Fields.EVENT_TYPE.getPreferredName(), eventType);
+        }
         if (incidentKey != null) {
             builder.field(Fields.INCIDENT_KEY.getPreferredName(), incidentKey);
         }
@@ -160,270 +165,183 @@ public class IncidentEvent implements ToXContentObject {
             }
             builder.endArray();
         }
+
         return builder.endObject();
     }
-    public static Template.Builder templateBuilder(String description) {
-        return templateBuilder(new TextTemplate(description));
+
+    public static Builder templateBuilder(String description) {
+        return new Builder(description);
     }
 
-    public static Template.Builder templateBuilder(TextTemplate description) {
-        return new Template.Builder(description);
+    public static IncidentEvent render(String watchId, String actionId, TextTemplateEngine engine, Map<String, Object> model,
+                                IncidentEventDefaults defaults, IncidentEvent event) {
+        String description = event.description != null ? engine.render(new TextTemplate(event.description), model) : defaults.description;
+        String incidentKey = event.incidentKey != null ? engine.render(new TextTemplate(event.incidentKey), model) :
+            defaults.incidentKey != null ? defaults.incidentKey : watchId;
+        String client = event.client != null ? engine.render(new TextTemplate(event.client), model) : defaults.client;
+        String clientUrl = event.clientUrl != null ? engine.render(new TextTemplate(event.clientUrl), model) : defaults.clientUrl;
+        String eventType = event.eventType != null ? engine.render(new TextTemplate(event.eventType), model) : defaults.eventType;
+        boolean attachPayload = event.attachPayload;
+        IncidentEventContext[] contexts = null;
+        if (event.contexts != null) {
+            contexts = new IncidentEventContext[event.contexts.length];
+            for (int i = 0; i < event.contexts.length; i++) {
+                contexts[i] = IncidentEventContext.render(engine, model, defaults, event.contexts[i]);
+            }
+        }
+        return new IncidentEvent(description, eventType, incidentKey, client, clientUrl, event.account, attachPayload, contexts,
+            event.proxy);
     }
 
-    public static class Template implements ToXContentObject {
+    public static IncidentEvent parse(String watchId, String actionId, XContentParser parser) throws IOException {
+        String incidentKey = null;
+        String description = null;
+        String client = null;
+        String clientUrl = null;
+        String eventType = null;
+        String account = null;
+        HttpProxy proxy = null;
+        boolean attachPayload = false;
+        IncidentEventContext[] contexts = null;
 
-        final TextTemplate description;
-        final TextTemplate incidentKey;
-        final TextTemplate client;
-        final TextTemplate clientUrl;
-        final TextTemplate eventType;
-        public final String account;
-        final Boolean attachPayload;
-        final IncidentEventContext.Template[] contexts;
-        final HttpProxy proxy;
-
-        public Template(TextTemplate description, TextTemplate eventType, TextTemplate incidentKey, TextTemplate client,
-                        TextTemplate clientUrl, String account, Boolean attachPayload, IncidentEventContext.Template[] contexts,
-                        HttpProxy proxy) {
-            this.description = description;
-            this.eventType = eventType;
-            this.incidentKey = incidentKey;
-            this.client = client;
-            this.clientUrl = clientUrl;
-            this.account = account;
-            this.attachPayload = attachPayload;
-            this.contexts = contexts;
-            this.proxy = proxy;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
-
-            Template template = (Template) o;
-            return Objects.equals(description, template.description) &&
-                   Objects.equals(incidentKey, template.incidentKey) &&
-                   Objects.equals(client, template.client) &&
-                   Objects.equals(clientUrl, template.clientUrl) &&
-                   Objects.equals(eventType, template.eventType) &&
-                   Objects.equals(attachPayload, template.attachPayload) &&
-                   Objects.equals(account, template.account) &&
-                   Objects.equals(proxy, template.proxy) &&
-                   Arrays.equals(contexts, template.contexts);
-        }
-
-        @Override
-        public int hashCode() {
-            int result = Objects.hash(description, eventType, incidentKey, client, clientUrl, attachPayload, account, proxy);
-            result = 31 * result + Arrays.hashCode(contexts);
-            return result;
-        }
-
-        public IncidentEvent render(String watchId, String actionId, TextTemplateEngine engine, Map<String, Object> model,
-                                    IncidentEventDefaults defaults) {
-            String description = this.description != null ? engine.render(this.description, model) : defaults.description;
-            String incidentKey = this.incidentKey != null ? engine.render(this.incidentKey, model) :
-                    defaults.incidentKey != null ? defaults.incidentKey : watchId;
-            String client = this.client != null ? engine.render(this.client, model) : defaults.client;
-            String clientUrl = this.clientUrl != null ? engine.render(this.clientUrl, model) : defaults.clientUrl;
-            String eventType = this.eventType != null ? engine.render(this.eventType, model) : defaults.eventType;
-            boolean attachPayload = this.attachPayload != null ? this.attachPayload : defaults.attachPayload;
-            IncidentEventContext[] contexts = null;
-            if (this.contexts != null) {
-                contexts = new IncidentEventContext[this.contexts.length];
-                for (int i = 0; i < this.contexts.length; i++) {
-                    contexts[i] = this.contexts[i].render(engine, model, defaults);
+        String currentFieldName = null;
+        XContentParser.Token token;
+        while ((token = parser.nextToken()) != XContentParser.Token.END_OBJECT) {
+            if (token == XContentParser.Token.FIELD_NAME) {
+                currentFieldName = parser.currentName();
+            } else if (Fields.INCIDENT_KEY.match(currentFieldName, parser.getDeprecationHandler())) {
+                try {
+                    incidentKey = parser.text();
+                } catch (ElasticsearchParseException e) {
+                    throw new ElasticsearchParseException("could not parse pager duty event template. failed to parse field [{}]",
+                        Fields.INCIDENT_KEY.getPreferredName());
                 }
-            }
-            return new IncidentEvent(description, eventType, incidentKey, client, clientUrl, account, attachPayload, contexts, proxy);
-        }
-
-        @Override
-        public XContentBuilder toXContent(XContentBuilder builder, ToXContent.Params params) throws IOException {
-            builder.startObject();
-            builder.field(Fields.DESCRIPTION.getPreferredName(), description, params);
-            if (incidentKey != null) {
-                builder.field(Fields.INCIDENT_KEY.getPreferredName(), incidentKey, params);
-            }
-            if (client != null) {
-                builder.field(Fields.CLIENT.getPreferredName(), client, params);
-            }
-            if (clientUrl != null) {
-                builder.field(Fields.CLIENT_URL.getPreferredName(), clientUrl, params);
-            }
-            if (eventType != null) {
-                builder.field(Fields.EVENT_TYPE.getPreferredName(), eventType, params);
-            }
-            if (attachPayload != null) {
-                builder.field(Fields.ATTACH_PAYLOAD.getPreferredName(), attachPayload);
-            }
-            if (account != null) {
-                builder.field(Fields.ACCOUNT.getPreferredName(), account);
-            }
-            if (proxy != null) {
-                proxy.toXContent(builder, params);
-            }
-            if (contexts != null) {
-                builder.startArray(Fields.CONTEXTS.getPreferredName());
-                for (IncidentEventContext.Template context : contexts) {
-                    context.toXContent(builder, params);
+            } else if (Fields.DESCRIPTION.match(currentFieldName, parser.getDeprecationHandler())) {
+                try {
+                    description = parser.text();
+                } catch (ElasticsearchParseException e) {
+                    throw new ElasticsearchParseException("could not parse pager duty event template. failed to parse field [{}]",
+                        Fields.DESCRIPTION.getPreferredName());
                 }
-                builder.endArray();
-            }
-            return builder.endObject();
-        }
-
-        public static Template parse(String watchId, String actionId, XContentParser parser) throws IOException {
-            TextTemplate incidentKey = null;
-            TextTemplate description = null;
-            TextTemplate client = null;
-            TextTemplate clientUrl = null;
-            TextTemplate eventType = null;
-            String account = null;
-            HttpProxy proxy = null;
-            Boolean attachPayload = null;
-            IncidentEventContext.Template[] contexts = null;
-
-            String currentFieldName = null;
-            XContentParser.Token token;
-            while ((token = parser.nextToken()) != XContentParser.Token.END_OBJECT) {
-                if (token == XContentParser.Token.FIELD_NAME) {
-                    currentFieldName = parser.currentName();
-                } else if (Fields.INCIDENT_KEY.match(currentFieldName, parser.getDeprecationHandler())) {
-                    try {
-                        incidentKey = TextTemplate.parse(parser);
-                    } catch (ElasticsearchParseException e) {
-                        throw new ElasticsearchParseException("could not parse pager duty event template. failed to parse field [{}]",
-                                Fields.INCIDENT_KEY.getPreferredName());
-                    }
-                } else if (Fields.DESCRIPTION.match(currentFieldName, parser.getDeprecationHandler())) {
-                    try {
-                        description = TextTemplate.parse(parser);
-                    } catch (ElasticsearchParseException e) {
-                        throw new ElasticsearchParseException("could not parse pager duty event template. failed to parse field [{}]",
-                                Fields.DESCRIPTION.getPreferredName());
-                    }
-                } else if (Fields.CLIENT.match(currentFieldName, parser.getDeprecationHandler())) {
-                    try {
-                        client = TextTemplate.parse(parser);
-                    } catch (ElasticsearchParseException e) {
-                        throw new ElasticsearchParseException("could not parse pager duty event template. failed to parse field [{}]",
-                                Fields.CLIENT.getPreferredName());
-                    }
-                } else if (Fields.CLIENT_URL.match(currentFieldName, parser.getDeprecationHandler())) {
-                    try {
-                        clientUrl = TextTemplate.parse(parser);
-                    } catch (ElasticsearchParseException e) {
-                        throw new ElasticsearchParseException("could not parse pager duty event template. failed to parse field [{}]",
-                                Fields.CLIENT_URL.getPreferredName());
-                    }
-                } else if (Fields.ACCOUNT.match(currentFieldName, parser.getDeprecationHandler())) {
-                    try {
-                        account = parser.text();
-                    } catch (ElasticsearchParseException e) {
-                        throw new ElasticsearchParseException("could not parse pager duty event template. failed to parse field [{}]",
-                                Fields.CLIENT_URL.getPreferredName());
-                    }
-                } else if (Fields.PROXY.match(currentFieldName, parser.getDeprecationHandler())) {
-                    proxy = HttpProxy.parse(parser);
-                } else if (Fields.EVENT_TYPE.match(currentFieldName, parser.getDeprecationHandler())) {
-                    try {
-                        eventType = TextTemplate.parse(parser);
-                    } catch (ElasticsearchParseException e) {
-                        throw new ElasticsearchParseException("could not parse pager duty event template. failed to parse field [{}]",
-                                Fields.EVENT_TYPE.getPreferredName());
-                    }
-                } else if (Fields.ATTACH_PAYLOAD.match(currentFieldName, parser.getDeprecationHandler())) {
-                    if (token == XContentParser.Token.VALUE_BOOLEAN) {
-                        attachPayload = parser.booleanValue();
-                    } else {
-                        throw new ElasticsearchParseException("could not parse pager duty event template. failed to parse field [{}], " +
-                                "expected a boolean value but found [{}] instead", Fields.ATTACH_PAYLOAD.getPreferredName(), token);
-                    }
-                } else if (Fields.CONTEXTS.match(currentFieldName, parser.getDeprecationHandler())
-                        || Fields.CONTEXT_DEPRECATED.match(currentFieldName, parser.getDeprecationHandler())) {
-                    if (token == XContentParser.Token.START_ARRAY) {
-                        List<IncidentEventContext.Template> list = new ArrayList<>();
-                        while ((token = parser.nextToken()) != XContentParser.Token.END_ARRAY) {
-                            try {
-                                list.add(IncidentEventContext.Template.parse(parser));
-                            } catch (ElasticsearchParseException e) {
-                                throw new ElasticsearchParseException("could not parse pager duty event template. failed to parse field " +
-                                        "[{}]", parser.currentName());
-                            }
-                        }
-                        contexts = list.toArray(new IncidentEventContext.Template[list.size()]);
-                    }
+            } else if (Fields.CLIENT.match(currentFieldName, parser.getDeprecationHandler())) {
+                try {
+                    client = parser.text();
+                } catch (ElasticsearchParseException e) {
+                    throw new ElasticsearchParseException("could not parse pager duty event template. failed to parse field [{}]",
+                        Fields.CLIENT.getPreferredName());
+                }
+            } else if (Fields.CLIENT_URL.match(currentFieldName, parser.getDeprecationHandler())) {
+                try {
+                    clientUrl = parser.text();
+                } catch (ElasticsearchParseException e) {
+                    throw new ElasticsearchParseException("could not parse pager duty event template. failed to parse field [{}]",
+                        Fields.CLIENT_URL.getPreferredName());
+                }
+            } else if (Fields.ACCOUNT.match(currentFieldName, parser.getDeprecationHandler())) {
+                try {
+                    account = parser.text();
+                } catch (ElasticsearchParseException e) {
+                    throw new ElasticsearchParseException("could not parse pager duty event template. failed to parse field [{}]",
+                        Fields.CLIENT_URL.getPreferredName());
+                }
+            } else if (Fields.PROXY.match(currentFieldName, parser.getDeprecationHandler())) {
+                proxy = HttpProxy.parse(parser);
+            } else if (Fields.EVENT_TYPE.match(currentFieldName, parser.getDeprecationHandler())) {
+                try {
+                    eventType = parser.text();
+                } catch (ElasticsearchParseException e) {
+                    throw new ElasticsearchParseException("could not parse pager duty event template. failed to parse field [{}]",
+                        Fields.EVENT_TYPE.getPreferredName());
+                }
+            } else if (Fields.ATTACH_PAYLOAD.match(currentFieldName, parser.getDeprecationHandler())) {
+                if (token == XContentParser.Token.VALUE_BOOLEAN) {
+                    attachPayload = parser.booleanValue();
                 } else {
-                    throw new ElasticsearchParseException("could not parse pager duty event template. unexpected field [{}]",
-                            currentFieldName);
+                    throw new ElasticsearchParseException("could not parse pager duty event template. failed to parse field [{}], " +
+                        "expected a boolean value but found [{}] instead", Fields.ATTACH_PAYLOAD.getPreferredName(), token);
                 }
+            } else if (Fields.CONTEXTS.match(currentFieldName, parser.getDeprecationHandler())
+                || Fields.CONTEXT_DEPRECATED.match(currentFieldName, parser.getDeprecationHandler())) {
+                if (token == XContentParser.Token.START_ARRAY) {
+                    List<IncidentEventContext> list = new ArrayList<>();
+                    while ((token = parser.nextToken()) != XContentParser.Token.END_ARRAY) {
+                        try {
+                            list.add(IncidentEventContext.parse(parser));
+                        } catch (ElasticsearchParseException e) {
+                            throw new ElasticsearchParseException("could not parse pager duty event template. failed to parse field " +
+                                "[{}]", parser.currentName());
+                        }
+                    }
+                    contexts = list.toArray(new IncidentEventContext[list.size()]);
+                }
+            } else {
+                throw new ElasticsearchParseException("could not parse pager duty event template. unexpected field [{}]",
+                    currentFieldName);
             }
-            return new Template(description, eventType, incidentKey, client, clientUrl, account, attachPayload, contexts, proxy);
+        }
+        return new IncidentEvent(description, eventType, incidentKey, client, clientUrl, account, attachPayload, contexts, proxy);
+    }
+
+    public static class Builder {
+
+        final String description;
+        String incidentKey;
+        String client;
+        String clientUrl;
+        String eventType;
+        String account;
+        HttpProxy proxy;
+        boolean attachPayload;
+        List<IncidentEventContext> contexts = new ArrayList<>();
+
+        public Builder(String description) {
+            this.description = description;
         }
 
-        public static class Builder {
+        public Builder setIncidentKey(String incidentKey) {
+            this.incidentKey = incidentKey;
+            return this;
+        }
 
-            final TextTemplate description;
-            TextTemplate incidentKey;
-            TextTemplate client;
-            TextTemplate clientUrl;
-            TextTemplate eventType;
-            String account;
-            HttpProxy proxy;
-            Boolean attachPayload;
-            List<IncidentEventContext.Template> contexts = new ArrayList<>();
+        public Builder setClient(String client) {
+            this.client = client;
+            return this;
+        }
 
-            public Builder(TextTemplate description) {
-                this.description = description;
-            }
+        public Builder setClientUrl(String clientUrl) {
+            this.clientUrl = clientUrl;
+            return this;
+        }
 
-            public Builder setIncidentKey(TextTemplate incidentKey) {
-                this.incidentKey = incidentKey;
-                return this;
-            }
+        public Builder setEventType(String eventType) {
+            this.eventType = eventType;
+            return this;
+        }
 
-            public Builder setClient(TextTemplate client) {
-                this.client = client;
-                return this;
-            }
+        public Builder setAccount(String account) {
+            this.account= account;
+            return this;
+        }
 
-            public Builder setClientUrl(TextTemplate clientUrl) {
-                this.clientUrl = clientUrl;
-                return this;
-            }
+        public Builder setAttachPayload(boolean attachPayload) {
+            this.attachPayload = attachPayload;
+            return this;
+        }
 
-            public Builder setEventType(TextTemplate eventType) {
-                this.eventType = eventType;
-                return this;
-            }
+        public Builder setProxy(HttpProxy proxy) {
+            this.proxy = proxy;
+            return this;
+        }
 
-            public Builder setAccount(String account) {
-                this.account= account;
-                return this;
-            }
+        public Builder addContext(IncidentEventContext context) {
+            this.contexts.add(context);
+            return this;
+        }
 
-            public Builder setAttachPayload(Boolean attachPayload) {
-                this.attachPayload = attachPayload;
-                return this;
-            }
-
-            public Builder setProxy(HttpProxy proxy) {
-                this.proxy = proxy;
-                return this;
-            }
-
-            public Builder addContext(IncidentEventContext.Template context) {
-                this.contexts.add(context);
-                return this;
-            }
-
-            public Template build() {
-                IncidentEventContext.Template[] contexts = this.contexts.isEmpty() ? null :
-                        this.contexts.toArray(new IncidentEventContext.Template[this.contexts.size()]);
-                return new Template(description, eventType, incidentKey, client, clientUrl, account, attachPayload, contexts, proxy);
-            }
+        public IncidentEvent build() {
+            IncidentEventContext[] contexts = this.contexts.isEmpty() ? null :
+                this.contexts.toArray(new IncidentEventContext[this.contexts.size()]);
+            return new IncidentEvent(description, eventType, incidentKey, client, clientUrl, account, attachPayload, contexts, proxy);
         }
     }
 

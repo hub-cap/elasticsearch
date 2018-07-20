@@ -66,9 +66,9 @@ public abstract class HipChatAccount  {
 
     public abstract String type();
 
-    public abstract void validateParsedTemplate(String watchId, String actionId, HipChatMessage.Template message) throws SettingsException;
+    public abstract void validateParsedTemplate(String watchId, String actionId, HipChatMessage message) throws SettingsException;
 
-    public abstract HipChatMessage render(String watchId, String actionId, TextTemplateEngine engine, HipChatMessage.Template template,
+    public abstract HipChatMessage render(String watchId, String actionId, TextTemplateEngine engine, HipChatMessage template,
                                           Map<String, Object> model);
 
     public abstract SentMessages send(HipChatMessage message, @Nullable HttpProxy proxy);

@@ -18,6 +18,7 @@ import org.elasticsearch.xpack.watcher.common.http.HttpProxy;
 import org.elasticsearch.xpack.watcher.common.http.HttpRequest;
 import org.elasticsearch.xpack.watcher.common.http.HttpResponse;
 import org.elasticsearch.xpack.watcher.common.http.Scheme;
+import org.elasticsearch.xpack.watcher.common.text.TextTemplate;
 import org.elasticsearch.xpack.watcher.common.text.TextTemplateEngine;
 import org.elasticsearch.xpack.watcher.notification.hipchat.HipChatMessage.Color;
 import org.elasticsearch.xpack.watcher.notification.hipchat.HipChatMessage.Format;
@@ -54,7 +55,7 @@ public class IntegrationAccount extends HipChatAccount {
     }
 
     @Override
-    public void validateParsedTemplate(String watchId, String actionId, HipChatMessage.Template template) throws SettingsException {
+    public void validateParsedTemplate(String watchId, String actionId, HipChatMessage template) throws SettingsException {
         if (template.rooms != null) {
             throw new ElasticsearchParseException("invalid [" + HipChatAction.TYPE + "] action for [" + watchId + "/" + actionId + "] " +
                     "action. [" + name + "] hipchat account doesn't support custom rooms");
@@ -70,10 +71,11 @@ public class IntegrationAccount extends HipChatAccount {
     }
 
     @Override
-    public HipChatMessage render(String watchId, String actionId, TextTemplateEngine engine, HipChatMessage.Template template,
+    public HipChatMessage render(String watchId, String actionId, TextTemplateEngine engine, HipChatMessage template,
                                  Map<String, Object> model) {
-        String message = engine.render(template.body, model);
-        Color color = template.color != null ? Color.resolve(engine.render(template.color, model), defaults.color) : defaults.color;
+        String message = engine.render(new TextTemplate(template.body), model);
+        Color color = template.color != null ?
+            Color.resolve(engine.render(new TextTemplate(template.color.name()), model), defaults.color) : defaults.color;
         Boolean notify = template.notify != null ? template.notify : defaults.notify;
         Format messageFormat = template.format != null ? template.format : defaults.format;
         return new HipChatMessage(message, null, null, null, messageFormat, color, notify);

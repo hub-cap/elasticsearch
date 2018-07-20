@@ -28,7 +28,7 @@ public class PagerDutyActionFactory extends ActionFactory {
     @Override
     public ExecutablePagerDutyAction parseExecutable(String watchId, String actionId, XContentParser parser) throws IOException {
         PagerDutyAction action = PagerDutyAction.parse(watchId, actionId, parser);
-        pagerDutyService.getAccount(action.event.account);
+        pagerDutyService.getAccount(action.event.getAccount());
         return new ExecutablePagerDutyAction(action, actionLogger, pagerDutyService, templateEngine);
     }
 }

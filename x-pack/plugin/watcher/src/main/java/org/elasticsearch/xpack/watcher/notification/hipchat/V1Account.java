@@ -16,6 +16,7 @@ import org.elasticsearch.xpack.watcher.common.http.HttpProxy;
 import org.elasticsearch.xpack.watcher.common.http.HttpRequest;
 import org.elasticsearch.xpack.watcher.common.http.HttpResponse;
 import org.elasticsearch.xpack.watcher.common.http.Scheme;
+import org.elasticsearch.xpack.watcher.common.text.TextTemplate;
 import org.elasticsearch.xpack.watcher.common.text.TextTemplateEngine;
 import org.elasticsearch.xpack.watcher.notification.hipchat.HipChatMessage.Color;
 import org.elasticsearch.xpack.watcher.notification.hipchat.HipChatMessage.Format;
@@ -43,7 +44,7 @@ public class V1Account extends HipChatAccount {
 
     @Override
     public void validateParsedTemplate(String watchId, String actionId,
-                                       HipChatMessage.Template template) throws ElasticsearchParseException {
+                                       HipChatMessage template) throws ElasticsearchParseException {
         if (template.users != null) {
             throw new ElasticsearchParseException("invalid [" + HipChatAction.TYPE + "] action for [" + watchId + "/" + actionId + "]. ["
                     + name + "] hipchat account doesn't support user private messaging");
@@ -55,18 +56,18 @@ public class V1Account extends HipChatAccount {
     }
 
     @Override
-    public HipChatMessage render(String watchId, String actionId, TextTemplateEngine engine, HipChatMessage.Template template,
+    public HipChatMessage render(String watchId, String actionId, TextTemplateEngine engine, HipChatMessage template,
                                  Map<String, Object> model) {
-        String message = engine.render(template.body, model);
+        String message = engine.render(new TextTemplate(template.body), model);
         String[] rooms = defaults.rooms;
         if (template.rooms != null) {
             rooms = new String[template.rooms.length];
             for (int i = 0; i < template.rooms.length; i++) {
-                rooms[i] = engine.render(template.rooms[i], model);
+                rooms[i] = engine.render(new TextTemplate(template.rooms[i]), model);
             }
         }
         String from = template.from != null ? template.from : defaults.from != null ? defaults.from : watchId;
-        Color color = Color.resolve(engine.render(template.color, model), defaults.color);
+        Color color = Color.resolve(engine.render(new TextTemplate(template.color.name()), model), defaults.color);
         Boolean notify = template.notify != null ? template.notify : defaults.notify;
         Format messageFormat = template.format != null ? template.format : defaults.format;
         return new HipChatMessage(message, rooms, null, from, messageFormat, color, notify);

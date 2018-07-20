@@ -34,14 +34,14 @@ public class ExecutablePagerDutyAction extends ExecutableAction<PagerDutyAction>
     @Override
     public Action.Result execute(final String actionId, WatchExecutionContext ctx, Payload payload) throws Exception {
 
-        PagerDutyAccount account = pagerDutyService.getAccount(action.event.account);
+        PagerDutyAccount account = pagerDutyService.getAccount(action.event.getAccount());
         if (account == null) {
             // the account associated with this action was deleted
-            throw new IllegalStateException("account [" + action.event.account + "] was not found. perhaps it was deleted");
+            throw new IllegalStateException("account [" + action.event.getAccount() + "] was not found. perhaps it was deleted");
         }
 
         Map<String, Object> model = Variables.createCtxModel(ctx, payload);
-        IncidentEvent event = action.event.render(ctx.watch().id(), actionId, templateEngine, model, account.getDefaults());
+        IncidentEvent event = IncidentEvent.render(ctx.watch().id(), actionId, templateEngine, model, account.getDefaults(), action.event);
 
         if (ctx.simulateAction(actionId)) {
             return new PagerDutyAction.Result.Simulated(event);

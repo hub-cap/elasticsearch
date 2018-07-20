@@ -41,7 +41,8 @@ public class ExecutableSlackAction extends ExecutableAction<SlackAction> {
         }
 
         Map<String, Object> model = Variables.createCtxModel(ctx, payload);
-        SlackMessage message = action.message.render(ctx.id().watchId(), actionId, templateEngine, model, account.getMessageDefaults());
+        SlackMessage message = SlackMessage.render(ctx.id().watchId(), actionId, templateEngine, model,
+            account.getMessageDefaults(), action.message);
 
         if (ctx.simulateAction(actionId)) {
             return new SlackAction.Result.Simulated(message);

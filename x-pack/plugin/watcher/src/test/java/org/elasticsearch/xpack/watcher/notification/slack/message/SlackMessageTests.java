@@ -16,7 +16,6 @@ import org.elasticsearch.test.ESTestCase;
 import org.elasticsearch.xpack.core.watcher.support.xcontent.WatcherParams;
 import org.elasticsearch.xpack.watcher.common.http.HttpRequest;
 import org.elasticsearch.xpack.watcher.common.http.HttpResponse;
-import org.elasticsearch.xpack.watcher.common.text.TextTemplate;
 import org.elasticsearch.xpack.watcher.common.text.TextTemplateEngine;
 import org.elasticsearch.xpack.watcher.notification.slack.SentMessages;
 import org.elasticsearch.xpack.watcher.test.MockTextTemplateEngine;
@@ -79,7 +78,7 @@ public class SlackMessageTests extends ESTestCase {
             }
         }
 
-        SlackMessage expected = new SlackMessage(from, to,  icon, text, attachments);
+        SlackMessage expected = new SlackMessage(from, to,  icon, text, attachments, null);
 
         boolean includeTarget = randomBoolean();
 
@@ -225,32 +224,32 @@ public class SlackMessageTests extends ESTestCase {
                         } else if ("actions".equals(currentFieldName)) {
                             MockTextTemplateEngine engine = new MockTextTemplateEngine();
                             while ((token = parser.nextToken()) != XContentParser.Token.END_ARRAY) {
-                                Action.Template action = new Action.Template();
+                                Action action = new Action();
                                 while ((token = parser.nextToken()) != XContentParser.Token.END_OBJECT) {
                                     if (token == XContentParser.Token.FIELD_NAME) {
                                         currentFieldName = parser.currentName();
                                     } else if (token.isValue()) {
                                         switch (currentFieldName) {
                                             case "url":
-                                                action.setUrl(new TextTemplate(parser.text()));
+                                                action.setUrl(parser.text());
                                                 break;
                                             case "name":
-                                                action.setName(new TextTemplate(parser.text()));
+                                                action.setName(parser.text());
                                                 break;
                                             case "style":
-                                                action.setStyle(new TextTemplate(parser.text()));
+                                                action.setStyle(parser.text());
                                                 break;
                                             case "text":
-                                                action.setText(new TextTemplate(parser.text()));
+                                                action.setText(parser.text());
                                                 break;
                                             case "type":
-                                                action.setType(new TextTemplate(parser.text()));
+                                                action.setType(parser.text());
                                                 break;
                                         }
                                     }
 
                                 }
-                                actions.add(action.render(engine, Collections.emptyMap()));
+                                actions.add(Action.render(engine, Collections.emptyMap(), action));
                             }
                         } else if ("image_url".equals(currentFieldName)) {
                             imageUrl = parser.text();
@@ -276,7 +275,7 @@ public class SlackMessageTests extends ESTestCase {
             to = expected.to;
         }
 
-        SlackMessage actual = new SlackMessage(from, to, icon, text, attachments);
+        SlackMessage actual = new SlackMessage(from, to, icon, text, attachments, null);
 
         assertThat(actual, equalTo(expected));
     }
@@ -286,117 +285,117 @@ public class SlackMessageTests extends ESTestCase {
         XContentBuilder jsonBuilder = jsonBuilder();
         jsonBuilder.startObject();
 
-        TextTemplate from = null;
+        String from = null;
         if (randomBoolean()) {
-            from = new TextTemplate(randomAlphaOfLength(200));
-            jsonBuilder.field("from", from, params);
+            from = randomAlphaOfLength(200);
+            jsonBuilder.field("from", from);
         }
-        TextTemplate[] to = null;
+        String[] to = null;
         if (randomBoolean()) {
             jsonBuilder.startArray("to");
-            to = new TextTemplate[randomIntBetween(1, 3)];
+            to = new String[randomIntBetween(1, 3)];
             for (int i = 0; i < to.length; i++) {
-                to[i] = new TextTemplate(randomAlphaOfLength(10));
-                to[i].toXContent(jsonBuilder, params);
+                to[i] = randomAlphaOfLength(10);
+                jsonBuilder.value(to[i]);
             }
             jsonBuilder.endArray();
         }
-        TextTemplate text = null;
+        String text = null;
         if (randomBoolean()) {
-            text = new TextTemplate(randomAlphaOfLength(200));
-            jsonBuilder.field("text", text, params);
+            text = randomAlphaOfLength(200);
+            jsonBuilder.field("text", text);
         }
-        TextTemplate icon = null;
+        String icon = null;
         if (randomBoolean()) {
-            icon = new TextTemplate(randomAlphaOfLength(10));
+            icon = randomAlphaOfLength(10);
             jsonBuilder.field("icon", icon);
         }
-        Attachment.Template[] attachments = null;
-        if (randomBoolean()) {
+        Attachment[] attachments = null;
+        if (text == null || randomBoolean()) {
             jsonBuilder.startArray("attachments");
-            attachments = new Attachment.Template[randomIntBetween(1, 3)];
+            attachments = new Attachment[randomIntBetween(1, 3)];
             for (int i = 0; i < attachments.length; i++) {
                 jsonBuilder.startObject();
-                TextTemplate fallback = null;
+                String fallback = null;
                 if (randomBoolean()) {
-                    fallback = new TextTemplate(randomAlphaOfLength(200));
-                    jsonBuilder.field("fallback", fallback, params);
+                    fallback = randomAlphaOfLength(200);
+                    jsonBuilder.field("fallback", fallback);
                 }
-                TextTemplate color = null;
+                String color = null;
                 if (randomBoolean()) {
-                    color = new TextTemplate(randomAlphaOfLength(200));
-                    jsonBuilder.field("color", color, params);
+                    color = randomAlphaOfLength(200);
+                    jsonBuilder.field("color", color);
                 }
-                TextTemplate pretext = null;
+                String pretext = null;
                 if (randomBoolean()) {
-                    pretext = new TextTemplate(randomAlphaOfLength(200));
-                    jsonBuilder.field("pretext", pretext, params);
+                    pretext = randomAlphaOfLength(200);
+                    jsonBuilder.field("pretext", pretext);
                 }
-                TextTemplate authorName = null;
-                TextTemplate authorLink = null;
-                TextTemplate authorIcon = null;
+                String authorName = null;
+                String authorLink = null;
+                String authorIcon = null;
                 if (randomBoolean()) {
-                    authorName = new TextTemplate(randomAlphaOfLength(200));
-                    jsonBuilder.field("author_name", authorName, params);
+                    authorName = randomAlphaOfLength(200);
+                    jsonBuilder.field("author_name", authorName);
                     if (randomBoolean()) {
-                        authorLink = new TextTemplate(randomAlphaOfLength(200));
-                        jsonBuilder.field("author_link", authorLink, params);
+                        authorLink = randomAlphaOfLength(200);
+                        jsonBuilder.field("author_link", authorLink);
                     }
                     if (randomBoolean()) {
-                        authorIcon = new TextTemplate(randomAlphaOfLength(200));
-                        jsonBuilder.field("author_icon", authorIcon, params);
+                        authorIcon = randomAlphaOfLength(200);
+                        jsonBuilder.field("author_icon", authorIcon);
                     }
                 }
-                TextTemplate title = null;
-                TextTemplate titleLink = null;
+                String title = null;
+                String titleLink = null;
                 if (randomBoolean()) {
-                    title = new TextTemplate(randomAlphaOfLength(200));
-                    jsonBuilder.field("title", title, params);
+                    title = randomAlphaOfLength(200);
+                    jsonBuilder.field("title", title);
                     if (randomBoolean()) {
-                        titleLink = new TextTemplate(randomAlphaOfLength(200));
-                        jsonBuilder.field("title_link", titleLink, params);
+                        titleLink = randomAlphaOfLength(200);
+                        jsonBuilder.field("title_link", titleLink);
                     }
                 }
-                TextTemplate attachmentText = null;
+                String attachmentText = null;
                 if (randomBoolean()) {
-                    attachmentText = new TextTemplate(randomAlphaOfLength(200));
-                    jsonBuilder.field("text", attachmentText, params);
+                    attachmentText = randomAlphaOfLength(200);
+                    jsonBuilder.field("text", attachmentText);
                 }
-                TextTemplate imageUrl = null;
+                String imageUrl = null;
                 if (randomBoolean()) {
-                    imageUrl = new TextTemplate(randomAlphaOfLength(200));
-                    jsonBuilder.field("image_url", imageUrl, params);
+                    imageUrl = randomAlphaOfLength(200);
+                    jsonBuilder.field("image_url", imageUrl);
                 }
-                TextTemplate thumbUrl = null;
+                String thumbUrl = null;
                 if (randomBoolean()) {
-                    thumbUrl = new TextTemplate(randomAlphaOfLength(200));
-                    jsonBuilder.field("thumb_url", thumbUrl, params);
+                    thumbUrl = randomAlphaOfLength(200);
+                    jsonBuilder.field("thumb_url", thumbUrl);
                 }
-                Field.Template[] fields = null;
+                Field[] fields = null;
                 if (randomBoolean()) {
                     jsonBuilder.startArray("fields");
-                    fields = new Field.Template[randomIntBetween(1,3)];
+                    fields = new Field[randomIntBetween(1,3)];
                     for (int j = 0; j < fields.length; j++) {
                         jsonBuilder.startObject();
-                        TextTemplate fieldTitle = new TextTemplate(randomAlphaOfLength(50));
-                        jsonBuilder.field("title", fieldTitle, params);
-                        TextTemplate fieldValue = new TextTemplate(randomAlphaOfLength(50));
-                        jsonBuilder.field("value", fieldValue, params);
+                        String fieldTitle = randomAlphaOfLength(50);
+                        jsonBuilder.field("title", fieldTitle);
+                        String fieldValue = randomAlphaOfLength(50);
+                        jsonBuilder.field("value", fieldValue);
                         boolean isShort = randomBoolean();
                         jsonBuilder.field("short", isShort);
-                        fields[j] = new Field.Template(fieldTitle, fieldValue, isShort);
+                        fields[j] = new Field(fieldTitle, fieldValue, isShort);
                         jsonBuilder.endObject();
                     }
                     jsonBuilder.endArray();
                 }
-                TextTemplate[] markdownSupportedFields = null;
+                String[] markdownSupportedFields = null;
                 if (randomBoolean()) {
                     jsonBuilder.startArray("mrkdwn_in");
                     jsonBuilder.value("pretext");
                     jsonBuilder.endArray();
-                    markdownSupportedFields = new TextTemplate[] { new TextTemplate("pretext") };
+                    markdownSupportedFields = new String[] { "pretext" };
                 }
-                List<Action.Template> actions = new ArrayList<>();
+                List<Action> actions = new ArrayList<>();
                 if (randomBoolean()) {
                     jsonBuilder.startArray("actions");
                     jsonBuilder.startObject();
@@ -408,16 +407,16 @@ public class SlackMessageTests extends ESTestCase {
                     jsonBuilder.field("name", "somebuttonparty");
                     jsonBuilder.endObject();
                     jsonBuilder.endArray();
-                    Action.Template action = new Action.Template();
-                    action.setName(new TextTemplate("somebuttonparty"));
-                    action.setStyle(new TextTemplate(style));
-                    action.setText(new TextTemplate("My text"));
-                    action.setType(new TextTemplate("button"));
-                    action.setUrl(new TextTemplate("https://elastic.co"));
+                    Action action = new Action();
+                    action.setName("somebuttonparty");
+                    action.setStyle(style);
+                    action.setText("My text");
+                    action.setType("button");
+                    action.setUrl("https://elastic.co");
                     actions.add(action);
                 }
                 jsonBuilder.endObject();
-                attachments[i] = new Attachment.Template(fallback, color, pretext, authorName, authorLink, authorIcon, title,
+                attachments[i] = new Attachment(fallback, color, pretext, authorName, authorLink, authorIcon, title,
                         titleLink, attachmentText, fields, imageUrl, thumbUrl, markdownSupportedFields, actions);
             }
             jsonBuilder.endArray();
@@ -428,7 +427,7 @@ public class SlackMessageTests extends ESTestCase {
         parser.nextToken();
         assertThat(parser.currentToken(), is(XContentParser.Token.START_OBJECT));
 
-        SlackMessage.Template template = SlackMessage.Template.parse(parser);
+        SlackMessage template = SlackMessage.parse(parser);
         assertThat(template, notNullValue());
         assertThat(template.from, is(from));
         if (to == null) {
@@ -448,7 +447,7 @@ public class SlackMessageTests extends ESTestCase {
     }
 
     public void testTemplateParseSelfGenerated() throws Exception {
-        SlackMessage.Template template = createRandomTemplate();
+        SlackMessage template = createRandomTemplate();
 
         XContentBuilder jsonBuilder = jsonBuilder();
         template.toXContent(jsonBuilder, ToXContent.EMPTY_PARAMS);
@@ -456,7 +455,7 @@ public class SlackMessageTests extends ESTestCase {
         XContentParser parser = createParser(jsonBuilder);
         parser.nextToken();
 
-        SlackMessage.Template parsed = SlackMessage.Template.parse(parser);
+        SlackMessage parsed = SlackMessage.parse(parser);
 
         assertThat(parsed, equalTo(template));
     }
@@ -464,7 +463,7 @@ public class SlackMessageTests extends ESTestCase {
     public void testTemplateRender() throws Exception {
         Settings settings = SlackMessageDefaultsTests.randomSettings();
         SlackMessageDefaults defaults = new SlackMessageDefaults(settings);
-        SlackMessage.Template.Builder templateBuilder = SlackMessage.Template.builder();
+        SlackMessage.Builder templateBuilder = SlackMessage.builder();
 
         if (randomBoolean()) {
             templateBuilder.setFrom(randomAlphaOfLength(10));
@@ -486,7 +485,7 @@ public class SlackMessageTests extends ESTestCase {
             int minimumAttachments = templateBuilder.text == null ? 1 : 0;
             int count = randomIntBetween(minimumAttachments, 3);
             for (int i = 0; i < count; i++) {
-                Attachment.Template.Builder attachmentBuilder = createRandomAttachmentTemplateBuilder();
+                Attachment.Builder attachmentBuilder = createRandomAttachmentTemplateBuilder();
                 templateBuilder.addAttachments(attachmentBuilder);
             }
         }
@@ -494,12 +493,12 @@ public class SlackMessageTests extends ESTestCase {
         // relies on the fact that all the templates we use are inline templates without param place holders
         TextTemplateEngine engine = new MockTextTemplateEngine();
 
-        SlackMessage.Template template = templateBuilder.build();
+        SlackMessage template = templateBuilder.build();
 
-        SlackMessage message = template.render("_w1", "_a1", engine, Collections.emptyMap(), defaults);
+        SlackMessage message = SlackMessage.render("_w1", "_a1", engine, Collections.emptyMap(), defaults, template);
         assertThat(message, notNullValue());
         if (template.from != null) {
-            assertThat(message.from, is(template.from.getTemplate()));
+            assertThat(message.from, is(template.from));
         } else {
             assertThat(message.from, is(defaults.from != null ? defaults.from : "_w1"));
         }
@@ -508,52 +507,52 @@ public class SlackMessageTests extends ESTestCase {
         } else {
             String[] expected = new String[message.to.length];
             for (int i = 0; i < expected.length; i++) {
-                expected[i] = template.to[i].getTemplate();
+                expected[i] = template.to[i];
             }
             assertThat(message.to, arrayContaining(expected));
         }
-        assertThat(message.icon, is(template.icon != null ? template.icon.getTemplate() : defaults.icon));
-        assertThat(message.text, is(template.text != null ? template.text.getTemplate() : defaults.text));
+        assertThat(message.icon, is(template.icon != null ? template.icon : defaults.icon));
+        assertThat(message.text, is(template.text != null ? template.text : defaults.text));
         if (template.attachments == null) {
             assertThat(message.attachments, nullValue());
         } else {
             for (int i = 0; i < template.attachments.length; i++) {
-                Attachment.Template attachmentTemplate = template.attachments[i];
+                Attachment attachmentTemplate = template.attachments[i];
                 Attachment attachment = message.attachments[i];
-                assertThat(attachment.authorName, is(attachmentTemplate.authorName != null ? attachmentTemplate.authorName.getTemplate()
+                assertThat(attachment.authorName, is(attachmentTemplate.authorName != null ? attachmentTemplate.authorName
                         : defaults.attachment.authorName));
-                assertThat(attachment.authorLink, is(attachmentTemplate.authorLink != null ? attachmentTemplate.authorLink.getTemplate()
+                assertThat(attachment.authorLink, is(attachmentTemplate.authorLink != null ? attachmentTemplate.authorLink
                         : defaults.attachment.authorLink));
-                assertThat(attachment.authorIcon, is(attachmentTemplate.authorIcon != null ? attachmentTemplate.authorIcon.getTemplate()
+                assertThat(attachment.authorIcon, is(attachmentTemplate.authorIcon != null ? attachmentTemplate.authorIcon
                         : defaults.attachment.authorIcon));
-                assertThat(attachment.color, is(attachmentTemplate.color != null ? attachmentTemplate.color.getTemplate()
+                assertThat(attachment.color, is(attachmentTemplate.color != null ? attachmentTemplate.color
                         : defaults.attachment.color));
-                assertThat(attachment.fallback, is(attachmentTemplate.fallback != null ? attachmentTemplate.fallback.getTemplate()
+                assertThat(attachment.fallback, is(attachmentTemplate.fallback != null ? attachmentTemplate.fallback
                         : defaults.attachment.fallback));
-                assertThat(attachment.imageUrl, is(attachmentTemplate.imageUrl != null ? attachmentTemplate.imageUrl.getTemplate()
+                assertThat(attachment.imageUrl, is(attachmentTemplate.imageUrl != null ? attachmentTemplate.imageUrl
                         : defaults.attachment.imageUrl));
-                assertThat(attachment.pretext, is(attachmentTemplate.pretext != null ? attachmentTemplate.pretext.getTemplate()
+                assertThat(attachment.pretext, is(attachmentTemplate.pretext != null ? attachmentTemplate.pretext
                         : defaults.attachment.pretext));
-                assertThat(attachment.thumbUrl, is(attachmentTemplate.thumbUrl != null ? attachmentTemplate.thumbUrl.getTemplate()
+                assertThat(attachment.thumbUrl, is(attachmentTemplate.thumbUrl != null ? attachmentTemplate.thumbUrl
                         : defaults.attachment.thumbUrl));
-                assertThat(attachment.title, is(attachmentTemplate.title != null ? attachmentTemplate.title.getTemplate()
+                assertThat(attachment.title, is(attachmentTemplate.title != null ? attachmentTemplate.title
                         : defaults.attachment.title));
-                assertThat(attachment.titleLink, is(attachmentTemplate.titleLink != null ? attachmentTemplate.titleLink.getTemplate()
+                assertThat(attachment.titleLink, is(attachmentTemplate.titleLink != null ? attachmentTemplate.titleLink
                         : defaults.attachment.titleLink));
-                assertThat(attachment.text, is(attachmentTemplate.text != null ? attachmentTemplate.text.getTemplate()
+                assertThat(attachment.text, is(attachmentTemplate.text != null ? attachmentTemplate.text
                         : defaults.attachment.text));
                 if (attachmentTemplate.fields == null) {
                     assertThat(attachment.fields, nullValue());
                 } else {
                     for (int j = 0; j < attachmentTemplate.fields.length; j++) {
-                        Field.Template fieldTemplate = attachmentTemplate.fields[j];
+                        Field fieldTemplate = attachmentTemplate.fields[j];
                         Field field = attachment.fields[j];
                         assertThat(field.title,
-                                is(fieldTemplate.title != null ? fieldTemplate.title.getTemplate(): defaults.attachment.field.title));
+                                is(fieldTemplate.title != null ? fieldTemplate.title: defaults.attachment.field.title));
                         assertThat(field.value,
-                                is(fieldTemplate.value != null ? fieldTemplate.value.getTemplate() : defaults.attachment.field.value));
+                                is(fieldTemplate.value != null ? fieldTemplate.value : defaults.attachment.field.value));
                         assertThat(field.isShort,
-                                is(fieldTemplate.isShort != null ? fieldTemplate.isShort : defaults.attachment.field.isShort));
+                                is(fieldTemplate.isShort));
                     }
                 }
                 if (attachmentTemplate.markdownSupportedFields == null) {
@@ -561,7 +560,7 @@ public class SlackMessageTests extends ESTestCase {
                 } else {
                     for (int j = 0; j < attachmentTemplate.markdownSupportedFields.length; j++) {
                         String[] templateMarkdownSupportFields = Arrays.stream(attachmentTemplate.markdownSupportedFields)
-                                .map(TextTemplate::getTemplate).toArray(String[]::new);
+                                .toArray(String[]::new);
 
                         assertThat(attachment.markdownSupportedFields, arrayContainingInAnyOrder(templateMarkdownSupportFields));
                     }
@@ -575,7 +574,7 @@ public class SlackMessageTests extends ESTestCase {
         HttpResponse response = new HttpResponse(500);
         String path = randomAlphaOfLength(20);
         HttpRequest request = HttpRequest.builder("localhost", 1234).path(path).build();
-        SlackMessage slackMessage = new SlackMessage("from", new String[] {"to"}, "icon", "text", null);
+        SlackMessage slackMessage = new SlackMessage("from", new String[] {"to"}, "icon", "text", null, null);
         SentMessages sentMessages = new SentMessages("foo",
                 Arrays.asList(SentMessages.SentMessage.responded("recipient", slackMessage, request, response)));
 
@@ -603,19 +602,19 @@ public class SlackMessageTests extends ESTestCase {
     }
 
     public void testCanHaveNullText()  throws Exception {
-        SlackMessage slackMessage = new SlackMessage("from", new String[] {"to"}, "icon", null, new Attachment[1]);
+        SlackMessage slackMessage = new SlackMessage("from", new String[] {"to"}, "icon", null, new Attachment[1], null);
         assertNull(slackMessage.getText());
         assertNotNull(slackMessage.getAttachments());
     }
 
     public void testCanHaveNullAttachments()  throws Exception {
-        SlackMessage slackMessage = new SlackMessage("from", new String[] {"to"}, "icon", "text", null);
+        SlackMessage slackMessage = new SlackMessage("from", new String[] {"to"}, "icon", "text", null, null);
         assertNotNull(slackMessage.getText());
         assertNull(slackMessage.getAttachments());
     }
 
     public void testCannotHaveNullAttachmentsAndNullText() throws Exception {
-        expectThrows(IllegalArgumentException.class, () -> new SlackMessage("from", new String[]{"to"}, "icon", null, null));
+        expectThrows(IllegalArgumentException.class, () -> new SlackMessage("from", new String[]{"to"}, "icon", null, null, null));
     }
 
     private static void writeFieldIfNotNull(XContentBuilder builder, String field, Object value) throws IOException {
@@ -624,8 +623,8 @@ public class SlackMessageTests extends ESTestCase {
         }
     }
 
-    public static SlackMessage.Template createRandomTemplate() {
-        SlackMessage.Template.Builder templateBuilder = SlackMessage.Template.builder();
+    public static SlackMessage createRandomTemplate() {
+        SlackMessage.Builder templateBuilder = SlackMessage.builder();
 
         if (randomBoolean()) {
             templateBuilder.setFrom(randomAlphaOfLength(10));
@@ -642,10 +641,12 @@ public class SlackMessageTests extends ESTestCase {
         if (randomBoolean()) {
             templateBuilder.setText(randomAlphaOfLength(10));
         }
-        if (randomBoolean()) {
-            int count = randomIntBetween(0, 3);
+        if (templateBuilder.text == null || randomBoolean()) {
+            // ensure at least one attachment in the event the text is null
+            int minimumAttachments = templateBuilder.text == null ? 1 : 0;
+            int count = randomIntBetween(minimumAttachments, 3);
             for (int i = 0; i < count; i++) {
-                Attachment.Template.Builder attachmentBuilder = createRandomAttachmentTemplateBuilder();
+                Attachment.Builder attachmentBuilder = createRandomAttachmentTemplateBuilder();
                 templateBuilder.addAttachments(attachmentBuilder);
             }
         }
@@ -653,8 +654,8 @@ public class SlackMessageTests extends ESTestCase {
         return templateBuilder.build();
     }
 
-    private static Attachment.Template.Builder createRandomAttachmentTemplateBuilder() {
-        Attachment.Template.Builder attachmentBuilder = Attachment.Template.builder();
+    private static Attachment.Builder createRandomAttachmentTemplateBuilder() {
+        Attachment.Builder attachmentBuilder = Attachment.builder();
         if (randomBoolean()) {
             attachmentBuilder.setAuthorName(randomAlphaOfLength(10));
             if (randomBoolean()) {

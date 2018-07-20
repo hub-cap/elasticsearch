@@ -63,27 +63,19 @@ public final class ActionBuilders {
         return LoggingAction.builder(text);
     }
 
-    public static HipChatAction.Builder hipchatAction(String message) {
-        return hipchatAction(new TextTemplate(message));
-    }
-
-    public static HipChatAction.Builder hipchatAction(String account, String body) {
-        return hipchatAction(account, new TextTemplate(body));
-    }
-
-    public static HipChatAction.Builder hipchatAction(TextTemplate body) {
+    public static HipChatAction.Builder hipchatAction(String body) {
         return hipchatAction(null, body);
     }
 
-    public static HipChatAction.Builder hipchatAction(String account, TextTemplate body) {
+    public static HipChatAction.Builder hipchatAction(String account, String body) {
         return HipChatAction.builder(account, body);
     }
 
-    public static SlackAction.Builder slackAction(String account, SlackMessage.Template.Builder message) {
+    public static SlackAction.Builder slackAction(String account, SlackMessage.Builder message) {
         return slackAction(account, message.build());
     }
 
-    public static SlackAction.Builder slackAction(String account, SlackMessage.Template message) {
+    public static SlackAction.Builder slackAction(String account, SlackMessage message) {
         return SlackAction.builder(account, message);
     }
 
@@ -91,11 +83,11 @@ public final class ActionBuilders {
         return pagerDutyAction(IncidentEvent.templateBuilder(description).setAccount(account));
     }
 
-    public static PagerDutyAction.Builder pagerDutyAction(IncidentEvent.Template.Builder event) {
+    public static PagerDutyAction.Builder pagerDutyAction(IncidentEvent.Builder event) {
         return PagerDutyAction.builder(event.build());
     }
 
-    public static PagerDutyAction.Builder pagerDutyAction(IncidentEvent.Template event) {
+    public static PagerDutyAction.Builder pagerDutyAction(IncidentEvent event) {
         return PagerDutyAction.builder(event);
     }
 }
