@@ -87,7 +87,7 @@ public class EmailSecretsIntegrationTests extends AbstractWatcherIntegrationTest
                         .input(simpleInput())
                         .condition(InternalAlwaysCondition.INSTANCE)
                         .addAction("_email", ActionBuilders.emailAction(
-                                EmailTemplate.builder()
+                                Email.builder()
                                         .from("_from")
                                         .to("_to")
                                         .subject("_subject"))

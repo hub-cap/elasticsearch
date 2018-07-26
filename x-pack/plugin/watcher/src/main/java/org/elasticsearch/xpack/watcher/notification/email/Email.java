@@ -11,11 +11,14 @@ import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.xcontent.ToXContentObject;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentParser;
+import org.elasticsearch.xpack.watcher.common.text.TextTemplate;
+import org.elasticsearch.xpack.watcher.common.text.TextTemplateEngine;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -112,6 +115,11 @@ public class Email implements ToXContentObject {
     @Override
     public XContentBuilder toXContent(XContentBuilder builder, Params params) throws IOException {
         builder.startObject();
+        xContentBody(builder, params);
+        return builder.endObject();
+    }
+
+    public void xContentBody(XContentBuilder builder, Params params) throws IOException {
         builder.field(Field.ID.getPreferredName(), id);
         if (from != null) {
             builder.field(Field.FROM.getPreferredName(), from);
@@ -143,7 +151,6 @@ public class Email implements ToXContentObject {
             }
             builder.endObject();
         }
-        return builder.endObject();
     }
 
     @Override
@@ -167,59 +174,57 @@ public class Email implements ToXContentObject {
         return new Builder();
     }
 
-    public static Email parse(XContentParser parser) throws IOException{
-        Builder email = new Builder();
-        String currentFieldName = null;
-        XContentParser.Token token;
-        while ((token = parser.nextToken()) != XContentParser.Token.END_OBJECT) {
-            if (token == XContentParser.Token.FIELD_NAME) {
-                currentFieldName = parser.currentName();
-            } else if ((token.isValue() || token == XContentParser.Token.START_OBJECT || token == XContentParser.Token.START_ARRAY) &&
-                    currentFieldName != null) {
-                if (Field.ID.match(currentFieldName, parser.getDeprecationHandler())) {
-                    email.id(parser.text());
-                } else if (Field.FROM.match(currentFieldName, parser.getDeprecationHandler())) {
-                    email.from(Address.parse(currentFieldName, token, parser));
-                } else if (Field.REPLY_TO.match(currentFieldName, parser.getDeprecationHandler())) {
-                    email.replyTo(AddressList.parse(currentFieldName, token, parser));
-                } else if (Field.TO.match(currentFieldName, parser.getDeprecationHandler())) {
-                    email.to(AddressList.parse(currentFieldName, token, parser));
-                } else if (Field.CC.match(currentFieldName, parser.getDeprecationHandler())) {
-                    email.cc(AddressList.parse(currentFieldName, token, parser));
-                } else if (Field.BCC.match(currentFieldName, parser.getDeprecationHandler())) {
-                    email.bcc(AddressList.parse(currentFieldName, token, parser));
-                } else if (Field.PRIORITY.match(currentFieldName, parser.getDeprecationHandler())) {
-                    email.priority(Email.Priority.resolve(parser.text()));
-                } else if (Field.SENT_DATE.match(currentFieldName, parser.getDeprecationHandler())) {
-                    email.sentDate(new DateTime(parser.text(), DateTimeZone.UTC));
-                } else if (Field.SUBJECT.match(currentFieldName, parser.getDeprecationHandler())) {
-                    email.subject(parser.text());
-                } else if (Field.BODY.match(currentFieldName, parser.getDeprecationHandler())) {
-                    String bodyField = currentFieldName;
-                    if (parser.currentToken() == XContentParser.Token.VALUE_STRING) {
-                        email.textBody(parser.text());
-                    } else if (parser.currentToken() == XContentParser.Token.START_OBJECT) {
-                        while ((token = parser.nextToken()) != XContentParser.Token.END_OBJECT) {
-                            if (token == XContentParser.Token.FIELD_NAME) {
-                                currentFieldName = parser.currentName();
-                            } else if (currentFieldName == null) {
-                                throw new ElasticsearchParseException("could not parse email. empty [{}] field", bodyField);
-                            } else if (Email.Field.BODY_TEXT.match(currentFieldName, parser.getDeprecationHandler())) {
-                                email.textBody(parser.text());
-                            } else if (Email.Field.BODY_HTML.match(currentFieldName, parser.getDeprecationHandler())) {
-                                email.htmlBody(parser.text());
-                            } else {
-                                throw new ElasticsearchParseException("could not parse email. unexpected field [{}.{}] field", bodyField,
-                                        currentFieldName);
-                            }
-                        }
-                    }
-                } else {
-                    throw new ElasticsearchParseException("could not parse email. unexpected field [{}]", currentFieldName);
-                }
+    public static Email.Builder render(TextTemplateEngine engine, Map<String, Object> model, HtmlSanitizer htmlSanitizer,
+                                Map<String, Attachment> attachments, Email email) throws AddressException {
+        Email.Builder builder = Email.builder();
+        if (email.from != null) {
+            builder.from(engine.render(new TextTemplate(email.from), model));
+        }
+        if (email.replyTo != null) {
+            List<String> addresses = templatesToAddressList(engine, email.replyTo, model);
+            builder.replyTo(addresses);
+        }
+        if (email.priority != null) {
+            builder.priority(Email.Priority.resolve(engine.render(new TextTemplate(email.priority), model)));
+        }
+        if (email.to != null) {
+            List<String> addresses = templatesToAddressList(engine, email.to, model);
+            builder.to(addresses);
+        }
+        if (email.cc != null) {
+            List<String> addresses = templatesToAddressList(engine, email.cc, model);
+            builder.cc(addresses);
+        }
+        if (email.bcc != null) {
+            List<String> addresses = templatesToAddressList(engine, email.bcc, model);
+            builder.bcc(addresses);
+        }
+        if (email.subject != null) {
+            builder.subject(engine.render(new TextTemplate(email.subject), model));
+        }
+        if (email.textBody != null) {
+            builder.textBody(engine.render(new TextTemplate(email.textBody), model));
+        }
+        if (attachments != null) {
+            for (Attachment attachment : attachments.values()) {
+                builder.attach(attachment);
             }
         }
-        return email.build();
+        if (email.htmlBody != null) {
+            String renderedHtml = engine.render(new TextTemplate(email.htmlBody), model);
+            renderedHtml = htmlSanitizer.sanitize(renderedHtml);
+            builder.htmlBody(renderedHtml);
+        }
+        return builder;
+    }
+
+    private static List<String> templatesToAddressList(TextTemplateEngine engine, List<String> items,
+                                                            Map<String, Object> model) throws AddressException {
+        List<String> addresses = new ArrayList<>(items.size());
+        for (String item : items) {
+            Email.AddressList.parse(engine.render(new TextTemplate(item), model)).forEach(addresses::add);
+        }
+        return addresses;
     }
 
     public static class Builder {
@@ -271,6 +276,11 @@ public class Email implements ToXContentObject {
             return this;
         }
 
+        public Builder replyTo(String replyTo) {
+            this.replyTo = Collections.singletonList(replyTo);
+            return this;
+        }
+
         public Builder priority(String priority) {
             this.priority = priority;
             return this;
@@ -278,6 +288,11 @@ public class Email implements ToXContentObject {
 
         public Builder sentDate(DateTime sentDate) {
             this.sentDate = sentDate;
+            return this;
+        }
+
+        public Builder to(String to) {
+            this.to = Collections.singletonList(to);
             return this;
         }
 
@@ -295,10 +310,22 @@ public class Email implements ToXContentObject {
             return this;
         }
 
+        public Builder cc(String to) {
+            this.cc = Collections.singletonList(to);
+            return this;
+        }
+
+
         public Builder bcc(List<String> bcc) {
             this.bcc = bcc;
             return this;
         }
+
+        public Builder bcc(String to) {
+            this.bcc = Collections.singletonList(to);
+            return this;
+        }
+
 
         public Builder subject(String subject) {
             this.subject = subject;
@@ -328,7 +355,7 @@ public class Email implements ToXContentObject {
          * after this is called is incorrect.
          */
         public Email build() {
-            assert id != null : "email id should not be null";
+            assert id != null : "email id should not be null"; //fuck.
             Email email = new Email(id, from, replyTo, priority, sentDate, to, cc, bcc, subject, textBody, htmlBody,
                     unmodifiableMap(attachments));
             attachments = null;
@@ -500,7 +527,7 @@ public class Email implements ToXContentObject {
         }
     }
 
-    interface Field {
+    public interface Field {
         ParseField ID = new ParseField("id");
         ParseField FROM = new ParseField("from");
         ParseField REPLY_TO = new ParseField("reply_to");

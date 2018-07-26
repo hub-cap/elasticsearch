@@ -18,10 +18,11 @@ import org.elasticsearch.xpack.core.watcher.support.xcontent.WatcherXContentPars
 import org.elasticsearch.xpack.watcher.notification.email.Authentication;
 import org.elasticsearch.xpack.watcher.notification.email.DataAttachment;
 import org.elasticsearch.xpack.watcher.notification.email.Email;
-import org.elasticsearch.xpack.watcher.notification.email.EmailTemplate;
 import org.elasticsearch.xpack.watcher.notification.email.Profile;
 import org.elasticsearch.xpack.watcher.notification.email.attachment.EmailAttachments;
 import org.elasticsearch.xpack.watcher.notification.email.attachment.EmailAttachmentsParser;
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 
 import java.io.IOException;
 import java.util.Locale;
@@ -31,14 +32,14 @@ public class EmailAction implements Action {
 
     public static final String TYPE = "email";
 
-    private final EmailTemplate email;
+    private final Email email;
     @Nullable private final String account;
     @Nullable private final Authentication auth;
     @Nullable private final Profile profile;
     @Nullable private final DataAttachment dataAttachment;
     @Nullable private final EmailAttachments emailAttachments;
 
-    public EmailAction(EmailTemplate email, @Nullable String account, @Nullable Authentication auth, @Nullable Profile profile,
+    public EmailAction(Email email, @Nullable String account, @Nullable Authentication auth, @Nullable Profile profile,
                        @Nullable DataAttachment dataAttachment, @Nullable EmailAttachments emailAttachments) {
         this.email = email;
         this.account = account;
@@ -48,7 +49,7 @@ public class EmailAction implements Action {
         this.emailAttachments = emailAttachments;
     }
 
-    public EmailTemplate getEmail() {
+    public Email getEmail() {
         return email;
     }
 
@@ -126,7 +127,7 @@ public class EmailAction implements Action {
 
     public static EmailAction parse(String watchId, String actionId, XContentParser parser,
                                     EmailAttachmentsParser emailAttachmentsParser) throws IOException {
-        EmailTemplate.Parser emailParser = new EmailTemplate.Parser();
+        Email.Builder email = Email.builder();
         String account = null;
         String user = null;
         Secret password = null;
@@ -148,40 +149,76 @@ public class EmailAction implements Action {
                 }
             } else if (Field.ATTACHMENTS.match(currentFieldName, parser.getDeprecationHandler())) {
                 attachments = emailAttachmentsParser.parse(parser);
-            } else if (!emailParser.handle(currentFieldName, parser)) {
-                if (token == XContentParser.Token.VALUE_STRING) {
-                    if (Field.ACCOUNT.match(currentFieldName, parser.getDeprecationHandler())) {
-                        account = parser.text();
-                    } else if (Field.USER.match(currentFieldName, parser.getDeprecationHandler())) {
-                        user = parser.text();
-                    } else if (Field.PASSWORD.match(currentFieldName, parser.getDeprecationHandler())) {
-                        password = WatcherXContentParser.secretOrNull(parser);
-                    } else if (Field.PROFILE.match(currentFieldName, parser.getDeprecationHandler())) {
-                        try {
-                            profile = Profile.resolve(parser.text());
-                        } catch (IllegalArgumentException iae) {
-                            throw new ElasticsearchParseException("could not parse [{}] action [{}/{}]", TYPE, watchId, actionId, iae);
+            } else if (Email.Field.ID.match(currentFieldName, parser.getDeprecationHandler())) {
+                email.id(parser.text());
+            } else if (Email.Field.FROM.match(currentFieldName, parser.getDeprecationHandler())) {
+                email.from(Email.Address.parse(currentFieldName, token, parser));
+            } else if (Email.Field.REPLY_TO.match(currentFieldName, parser.getDeprecationHandler())) {
+                email.replyTo(Email.AddressList.parse(currentFieldName, token, parser));
+            } else if (Email.Field.TO.match(currentFieldName, parser.getDeprecationHandler())) {
+                email.to(Email.AddressList.parse(currentFieldName, token, parser));
+            } else if (Email.Field.CC.match(currentFieldName, parser.getDeprecationHandler())) {
+                email.cc(Email.AddressList.parse(currentFieldName, token, parser));
+            } else if (Email.Field.BCC.match(currentFieldName, parser.getDeprecationHandler())) {
+                email.bcc(Email.AddressList.parse(currentFieldName, token, parser));
+            } else if (Email.Field.PRIORITY.match(currentFieldName, parser.getDeprecationHandler())) {
+                email.priority(Email.Priority.resolve(parser.text()));
+            } else if (Email.Field.SENT_DATE.match(currentFieldName, parser.getDeprecationHandler())) {
+                email.sentDate(new DateTime(parser.text(), DateTimeZone.UTC));
+            } else if (Email.Field.SUBJECT.match(currentFieldName, parser.getDeprecationHandler())) {
+                email.subject(parser.text());
+            } else if (Email.Field.BODY.match(currentFieldName, parser.getDeprecationHandler())) {
+                String bodyField = currentFieldName;
+                if (parser.currentToken() == XContentParser.Token.VALUE_STRING) {
+                    email.textBody(parser.text());
+                } else if (parser.currentToken() == XContentParser.Token.START_OBJECT) {
+                    while ((token = parser.nextToken()) != XContentParser.Token.END_OBJECT) {
+                        if (token == XContentParser.Token.FIELD_NAME) {
+                            currentFieldName = parser.currentName();
+                        } else if (currentFieldName == null) {
+                            throw new ElasticsearchParseException("could not parse email. empty [{}] field", bodyField);
+                        } else if (Email.Field.BODY_TEXT.match(currentFieldName, parser.getDeprecationHandler())) {
+                            email.textBody(parser.text());
+                        } else if (Email.Field.BODY_HTML.match(currentFieldName, parser.getDeprecationHandler())) {
+                            email.htmlBody(parser.text());
+                        } else {
+                            throw new ElasticsearchParseException("could not parse email. unexpected field [{}.{}] field", bodyField,
+                                currentFieldName);
                         }
-                    } else {
-                        throw new ElasticsearchParseException("could not parse [{}] action [{}/{}]. unexpected string field [{}]", TYPE,
-                                watchId, actionId, currentFieldName);
+                    }
+                }
+            } else if (token == XContentParser.Token.VALUE_STRING) {
+                if (Field.ACCOUNT.match(currentFieldName, parser.getDeprecationHandler())) {
+                    account = parser.text();
+                } else if (Field.USER.match(currentFieldName, parser.getDeprecationHandler())) {
+                    user = parser.text();
+                } else if (Field.PASSWORD.match(currentFieldName, parser.getDeprecationHandler())) {
+                    password = WatcherXContentParser.secretOrNull(parser);
+                } else if (Field.PROFILE.match(currentFieldName, parser.getDeprecationHandler())) {
+                    try {
+                        profile = Profile.resolve(parser.text());
+                    } catch (IllegalArgumentException iae) {
+                        throw new ElasticsearchParseException("could not parse [{}] action [{}/{}]", TYPE, watchId, actionId, iae);
                     }
                 } else {
-                    throw new ElasticsearchParseException("could not parse [{}] action [{}/{}]. unexpected token [{}]", TYPE, watchId,
-                            actionId, token);
+                    throw new ElasticsearchParseException("could not parse [{}] action [{}/{}]. unexpected string field [{}]", TYPE,
+                            watchId, actionId, currentFieldName);
                 }
+            } else {
+                throw new ElasticsearchParseException("could not parse [{}] action [{}/{}]. unexpected token [{}]", TYPE, watchId,
+                        actionId, token);
             }
-        }
 
+        }
         Authentication auth = null;
         if (user != null) {
             auth = new Authentication(user, password);
         }
 
-        return new EmailAction(emailParser.parsedTemplate(), account, auth, profile, dataAttachment, attachments);
+        return new EmailAction(email.build(), account, auth, profile, dataAttachment, attachments);
     }
 
-    public static Builder builder(EmailTemplate email) {
+    public static Builder builder(Email email) {
         return new Builder(email);
     }
 
@@ -243,14 +280,14 @@ public class EmailAction implements Action {
 
     public static class Builder implements Action.Builder<EmailAction> {
 
-        final EmailTemplate email;
+        final Email email;
         @Nullable String account;
         @Nullable Authentication auth;
         @Nullable Profile profile;
         @Nullable DataAttachment dataAttachment;
         @Nullable EmailAttachments attachments;
 
-        private Builder(EmailTemplate email) {
+        private Builder(Email email) {
             this.email = email;
         }
 

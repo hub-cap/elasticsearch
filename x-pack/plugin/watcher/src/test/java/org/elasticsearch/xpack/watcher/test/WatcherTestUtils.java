@@ -40,8 +40,8 @@ import org.elasticsearch.xpack.watcher.execution.TriggeredExecutionContext;
 import org.elasticsearch.xpack.watcher.input.simple.ExecutableSimpleInput;
 import org.elasticsearch.xpack.watcher.input.simple.SimpleInput;
 import org.elasticsearch.xpack.watcher.notification.email.Authentication;
+import org.elasticsearch.xpack.watcher.notification.email.Email;
 import org.elasticsearch.xpack.watcher.notification.email.EmailService;
-import org.elasticsearch.xpack.watcher.notification.email.EmailTemplate;
 import org.elasticsearch.xpack.watcher.notification.email.HtmlSanitizer;
 import org.elasticsearch.xpack.watcher.notification.email.Profile;
 import org.elasticsearch.xpack.watcher.support.search.WatcherSearchTemplateRequest;
@@ -157,7 +157,7 @@ public final class WatcherTestUtils {
                 logger, httpClient, engine)));
 
 
-        EmailTemplate email = EmailTemplate.builder().from("from@test.com").to("to@test.com").build();
+        Email email = Email.builder().from("from@test.com").to("to@test.com").build();
         Authentication auth = new Authentication("testname", new Secret("testpassword".toCharArray()));
         EmailAction action = new EmailAction(email, "testaccount", auth, Profile.STANDARD, null, null);
         ExecutableEmailAction executale = new ExecutableEmailAction(action, logger, emailService, engine,

@@ -35,7 +35,6 @@ import org.elasticsearch.xpack.watcher.notification.email.Attachment;
 import org.elasticsearch.xpack.watcher.notification.email.Authentication;
 import org.elasticsearch.xpack.watcher.notification.email.Email;
 import org.elasticsearch.xpack.watcher.notification.email.EmailService;
-import org.elasticsearch.xpack.watcher.notification.email.EmailTemplate;
 import org.elasticsearch.xpack.watcher.notification.email.HtmlSanitizer;
 import org.elasticsearch.xpack.watcher.notification.email.Profile;
 import org.elasticsearch.xpack.watcher.notification.email.attachment.DataAttachmentParser;
@@ -58,13 +57,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonMap;
 import static org.elasticsearch.common.xcontent.XContentFactory.jsonBuilder;
 import static org.elasticsearch.xpack.watcher.test.WatcherTestUtils.mockExecutionContextBuilder;
-import static org.hamcrest.Matchers.arrayContainingInAnyOrder;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasKey;
@@ -99,23 +96,23 @@ public class EmailActionTests extends ESTestCase {
         TextTemplateEngine engine = mock(TextTemplateEngine.class);
         HtmlSanitizer htmlSanitizer = mock(HtmlSanitizer.class);
 
-        EmailTemplate.Builder emailBuilder = EmailTemplate.builder();
-        TextTemplate subject = null;
+        Email.Builder emailBuilder = Email.builder();
+        String subject = null;
         if (randomBoolean()) {
-            subject = new TextTemplate("_subject");
+            subject = "_subject";
             emailBuilder.subject(subject);
         }
-        TextTemplate textBody = null;
+        String textBody = null;
         if (randomBoolean()) {
-            textBody = new TextTemplate("_text_body");
+            textBody = "_text_body";
             emailBuilder.textBody(textBody);
         }
-        TextTemplate htmlBody = null;
+        String htmlBody = null;
         if (randomBoolean()) {
-            htmlBody = new TextTemplate("_html_body");
+            htmlBody = "_html_body";
             emailBuilder.htmlBody(htmlBody);
         }
-        EmailTemplate email = emailBuilder.build();
+        Email email = emailBuilder.build();
 
         Authentication auth = new Authentication("user", new Secret("passwd".toCharArray()));
         Profile profile = randomFrom(Profile.values());
@@ -156,14 +153,14 @@ public class EmailActionTests extends ESTestCase {
         Map<String, Object> expectedModel = singletonMap("ctx", ctxModel);
 
         if (subject != null) {
-            when(engine.render(subject, expectedModel)).thenReturn(subject.getTemplate());
+            when(engine.render(new TextTemplate(subject), expectedModel)).thenReturn(subject);
         }
         if (textBody != null) {
-            when(engine.render(textBody, expectedModel)).thenReturn(textBody.getTemplate());
+            when(engine.render(new TextTemplate(textBody), expectedModel)).thenReturn(textBody);
         }
         if (htmlBody != null) {
-            when(htmlSanitizer.sanitize(htmlBody.getTemplate())).thenReturn(htmlBody.getTemplate());
-            when(engine.render(htmlBody, expectedModel)).thenReturn(htmlBody.getTemplate());
+            when(htmlSanitizer.sanitize(htmlBody)).thenReturn(htmlBody);
+            when(engine.render(new TextTemplate(htmlBody), expectedModel)).thenReturn(htmlBody);
         }
 
         Action.Result result = executable.execute("_id", ctx, payload);
@@ -174,16 +171,12 @@ public class EmailActionTests extends ESTestCase {
         Email actualEmail = ((EmailAction.Result.Success) result).email();
         assertThat(actualEmail.id(), is("_id_" + wid.value()));
         assertThat(actualEmail, notNullValue());
-        assertThat(actualEmail.subject(), is(subject == null ? null : subject.getTemplate()));
-        assertThat(actualEmail.textBody(), is(textBody == null ? null : textBody.getTemplate()));
-        assertThat(actualEmail.htmlBody(), is(htmlBody == null ? null : htmlBody.getTemplate()));
+        assertThat(actualEmail.subject(), is(subject == null ? null : subject));
+        assertThat(actualEmail.textBody(), is(textBody == null ? null : textBody));
+        assertThat(actualEmail.htmlBody(), is(htmlBody == null ? null : htmlBody));
         if (dataAttachment != null) {
             assertThat(actualEmail.attachments(), hasKey("data"));
         }
-    }
-
-    private TextTemplate[] mapStringsToTemplates(List<String> strings) {
-        return strings.stream().map(TextTemplate::new).collect(Collectors.toList()).toArray(new TextTemplate[strings.size()]);
     }
 
     public void testParser() throws Exception {
@@ -191,18 +184,13 @@ public class EmailActionTests extends ESTestCase {
         EmailService emailService = mock(EmailService.class);
         Profile profile = randomFrom(Profile.values());
         Email.Priority priority = randomFrom(Email.Priority.values());
-        TextTemplate[] to = rarely() ? null : mapStringsToTemplates(
-            Email.AddressList.parse(randomBoolean() ? "to@domain" : "to1@domain,to2@domain"));
-
-        TextTemplate[] cc = rarely() ? null : mapStringsToTemplates(
-            Email.AddressList.parse(randomBoolean() ? "cc@domain" : "cc1@domain,cc2@domain"));
-        TextTemplate[] bcc = rarely() ? null : mapStringsToTemplates(
-            Email.AddressList.parse(randomBoolean() ? "bcc@domain" : "bcc1@domain,bcc2@domain"));
-        TextTemplate[] replyTo = rarely() ? null : mapStringsToTemplates(
-            Email.AddressList.parse(randomBoolean() ? "reply@domain" : "reply1@domain,reply2@domain"));
-        TextTemplate subject = randomBoolean() ? new TextTemplate("_subject") : null;
-        TextTemplate textBody = randomBoolean() ? new TextTemplate("_text_body") : null;
-        TextTemplate htmlBody = randomBoolean() ? new TextTemplate("_text_html") : null;
+        List<String> to = rarely() ? null : Email.AddressList.parse(randomBoolean() ? "to@domain" : "to1@domain,to2@domain");
+        List<String> cc = rarely() ? null : Email.AddressList.parse(randomBoolean() ? "cc@domain" : "cc1@domain,cc2@domain");
+        List<String> bcc = rarely() ? null : Email.AddressList.parse(randomBoolean() ? "bcc@domain" : "bcc1@domain,bcc2@domain");
+        List<String> replyTo = rarely() ? null : Email.AddressList.parse(randomBoolean() ? "reply@domain" : "reply1@domain,reply2@domain");
+        String subject = randomBoolean() ? "_subject" : null;
+        String textBody = randomBoolean() ? "_text_body" : null;
+        String htmlBody = randomBoolean() ? "_text_html" : null;
         org.elasticsearch.xpack.watcher.notification.email.DataAttachment dataAttachment = randomDataAttachment();
         XContentBuilder builder = jsonBuilder().startObject()
                 .field("account", "_account")
@@ -221,67 +209,51 @@ public class EmailActionTests extends ESTestCase {
         }
 
         if (to != null) {
-            if (to.length == 1) {
-                builder.field("to", to[0]);
+            if (to.size() == 1) {
+                builder.field("to", to.get(0));
             } else {
-                builder.array("to", (Object[]) to);
+                builder.array("to", to.toArray());
             }
         }
         if (cc != null) {
-            if (cc.length == 1) {
-                builder.field("cc", cc[0]);
+            if (cc.size() == 1) {
+                builder.field("cc", cc.get(0));
             } else {
-                builder.array("cc", (Object[]) cc);
+                builder.array("cc", cc.toArray());
             }
         }
         if (bcc != null) {
-            if (bcc.length == 1) {
-                builder.field("bcc", bcc[0]);
+            if (bcc.size() == 1) {
+                builder.field("bcc", bcc.get(0));
             } else {
-                builder.array("bcc", (Object[]) bcc);
+                builder.array("bcc", bcc.toArray());
             }
         }
         if (replyTo != null) {
-            if (replyTo.length == 1) {
-                builder.field("reply_to", replyTo[0]);
+            if (replyTo.size() == 1) {
+                builder.field("reply_to", replyTo.get(0));
             } else {
-                builder.array("reply_to", (Object[]) replyTo);
+                builder.array("reply_to", replyTo.toArray());
             }
         }
         if (subject != null) {
-            if (randomBoolean()) {
-                builder.field("subject", subject.getTemplate());
-            } else {
-                builder.field("subject", subject);
-            }
+            builder.field("subject", subject);
         }
         if (textBody != null && htmlBody == null) {
             if (randomBoolean()) {
-                builder.field("body", textBody.getTemplate());
+                builder.field("body", textBody);
             } else {
                 builder.startObject("body");
-                if (randomBoolean()) {
-                    builder.field("text", textBody.getTemplate());
-                } else {
-                    builder.field("text", textBody);
-                }
+                builder.field("text", textBody);
                 builder.endObject();
             }
         } else if (textBody != null || htmlBody != null) {
             builder.startObject("body");
             if (textBody != null) {
-                if (randomBoolean()) {
-                    builder.field("text", textBody.getTemplate());
-                } else {
-                    builder.field("text", textBody);
-                }
+                builder.field("text", textBody);
             }
             if (htmlBody != null) {
-                if (randomBoolean()) {
-                    builder.field("html", htmlBody.getTemplate());
-                } else {
-                    builder.field("html", htmlBody);
-                }
+                builder.field("html", htmlBody);
             }
             builder.endObject();
         }
@@ -308,22 +280,22 @@ public class EmailActionTests extends ESTestCase {
         assertThat(executable.action().getAuth().password(), is(new Secret("_passwd".toCharArray())));
         assertThat(executable.action().getEmail().priority(), is(new TextTemplate(priority.name())));
         if (to != null) {
-            assertThat(executable.action().getEmail().to(), arrayContainingInAnyOrder(to));
+            assertThat(executable.action().getEmail().to(), equalTo(to));
         } else {
             assertThat(executable.action().getEmail().to(), nullValue());
         }
         if (cc != null) {
-            assertThat(executable.action().getEmail().cc(), arrayContainingInAnyOrder(cc));
+            assertThat(executable.action().getEmail().cc(), equalTo(cc));
         } else {
             assertThat(executable.action().getEmail().cc(), nullValue());
         }
         if (bcc != null) {
-            assertThat(executable.action().getEmail().bcc(), arrayContainingInAnyOrder(bcc));
+            assertThat(executable.action().getEmail().bcc(), equalTo(bcc));
         } else {
             assertThat(executable.action().getEmail().bcc(), nullValue());
         }
         if (replyTo != null) {
-            assertThat(executable.action().getEmail().replyTo(), arrayContainingInAnyOrder(replyTo));
+            assertThat(executable.action().getEmail().replyTo(), equalTo(replyTo));
         } else {
             assertThat(executable.action().getEmail().replyTo(), nullValue());
         }
@@ -333,7 +305,7 @@ public class EmailActionTests extends ESTestCase {
         EmailService service = mock(EmailService.class);
         TextTemplateEngine engine = mock(TextTemplateEngine.class);
         HtmlSanitizer htmlSanitizer = mock(HtmlSanitizer.class);
-        EmailTemplate.Builder emailTemplate = EmailTemplate.builder();
+        Email.Builder emailTemplate = Email.builder();
         if (randomBoolean()) {
             emailTemplate.from("from@domain");
         }
@@ -358,7 +330,7 @@ public class EmailActionTests extends ESTestCase {
         if (randomBoolean()) {
             emailTemplate.htmlBody("_html_body");
         }
-        EmailTemplate email = emailTemplate.build();
+        Email email = emailTemplate.build();
         Authentication auth = randomBoolean() ? null : new Authentication("_user", new Secret("_passwd".toCharArray()));
         Profile profile = randomFrom(Profile.values());
         String account = randomAlphaOfLength(6);

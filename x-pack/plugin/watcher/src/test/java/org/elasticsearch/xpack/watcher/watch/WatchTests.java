@@ -82,8 +82,8 @@ import org.elasticsearch.xpack.watcher.input.simple.ExecutableSimpleInput;
 import org.elasticsearch.xpack.watcher.input.simple.SimpleInput;
 import org.elasticsearch.xpack.watcher.input.simple.SimpleInputFactory;
 import org.elasticsearch.xpack.watcher.notification.email.DataAttachment;
+import org.elasticsearch.xpack.watcher.notification.email.Email;
 import org.elasticsearch.xpack.watcher.notification.email.EmailService;
-import org.elasticsearch.xpack.watcher.notification.email.EmailTemplate;
 import org.elasticsearch.xpack.watcher.notification.email.HtmlSanitizer;
 import org.elasticsearch.xpack.watcher.notification.email.Profile;
 import org.elasticsearch.xpack.watcher.notification.email.attachment.EmailAttachments;
@@ -581,7 +581,7 @@ public class WatchTests extends ESTestCase {
     private List<ActionWrapper> randomActions() {
         List<ActionWrapper> list = new ArrayList<>();
         if (randomBoolean()) {
-            EmailAction action = new EmailAction(EmailTemplate.builder().build(), null, null, Profile.STANDARD,
+            EmailAction action = new EmailAction(Email.builder().build(), null, null, Profile.STANDARD,
                     randomFrom(DataAttachment.JSON, DataAttachment.YAML), EmailAttachments.EMPTY_ATTACHMENTS);
             list.add(new ActionWrapper("_email_" + randomAlphaOfLength(8), randomThrottler(),
                     AlwaysConditionTests.randomCondition(scriptService), randomTransform(),

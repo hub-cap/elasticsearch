@@ -8,7 +8,7 @@ package org.elasticsearch.xpack.watcher.actions;
 import org.elasticsearch.common.collect.MapBuilder;
 import org.elasticsearch.xpack.watcher.common.http.HttpRequestTemplate;
 import org.elasticsearch.xpack.watcher.common.text.TextTemplate;
-import org.elasticsearch.xpack.watcher.notification.email.EmailTemplate;
+import org.elasticsearch.xpack.watcher.notification.email.Email;
 import org.elasticsearch.xpack.watcher.notification.pagerduty.IncidentEvent;
 import org.elasticsearch.xpack.watcher.notification.slack.message.SlackMessage;
 import org.elasticsearch.xpack.watcher.actions.email.EmailAction;
@@ -27,11 +27,11 @@ public final class ActionBuilders {
     private ActionBuilders() {
     }
 
-    public static EmailAction.Builder emailAction(EmailTemplate.Builder email) {
+    public static EmailAction.Builder emailAction(Email.Builder email) {
         return emailAction(email.build());
     }
 
-    public static EmailAction.Builder emailAction(EmailTemplate email) {
+    public static EmailAction.Builder emailAction(Email email) {
         return EmailAction.builder(email);
     }
 

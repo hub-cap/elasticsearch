@@ -14,10 +14,12 @@ import org.elasticsearch.test.junit.annotations.TestLogging;
 import org.elasticsearch.xpack.core.watcher.execution.ExecutionState;
 import org.elasticsearch.xpack.core.watcher.history.HistoryStoreField;
 import org.elasticsearch.xpack.watcher.condition.InternalAlwaysCondition;
-import org.elasticsearch.xpack.watcher.notification.email.EmailTemplate;
+import org.elasticsearch.xpack.watcher.notification.email.Email;
 import org.elasticsearch.xpack.watcher.notification.email.support.EmailServer;
 import org.elasticsearch.xpack.watcher.test.AbstractWatcherIntegrationTestCase;
 import org.junit.After;
+
+import java.util.Arrays;
 
 import static org.elasticsearch.search.aggregations.AggregationBuilders.terms;
 import static org.elasticsearch.search.builder.SearchSourceBuilder.searchSource;
@@ -70,12 +72,12 @@ public class HistoryTemplateEmailMappingsTests extends AbstractWatcherIntegratio
                 .trigger(schedule(interval("5s")))
                 .input(simpleInput())
                 .condition(InternalAlwaysCondition.INSTANCE)
-                .addAction("_email", emailAction(EmailTemplate.builder()
+                .addAction("_email", emailAction(Email.builder()
                         .from("from@example.com")
-                        .to("to1@example.com", "to2@example.com")
-                        .cc("cc1@example.com", "cc2@example.com")
-                        .bcc("bcc1@example.com", "bcc2@example.com")
-                        .replyTo("rt1@example.com", "rt2@example.com")
+                        .to(Arrays.asList("to1@example.com", "to2@example.com"))
+                        .cc(Arrays.asList("cc1@example.com", "cc2@example.com"))
+                        .bcc(Arrays.asList("bcc1@example.com", "bcc2@example.com"))
+                        .replyTo(Arrays.asList("rt1@example.com", "rt2@example.com"))
                         .subject("_subject")
                         .textBody("_body"))))
                 .get();

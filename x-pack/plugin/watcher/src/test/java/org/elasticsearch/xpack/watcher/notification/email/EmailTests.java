@@ -5,60 +5,31 @@
  */
 package org.elasticsearch.xpack.watcher.notification.email;
 
-import org.elasticsearch.common.xcontent.ToXContent;
-import org.elasticsearch.common.xcontent.XContentBuilder;
-import org.elasticsearch.common.xcontent.XContentFactory;
-import org.elasticsearch.common.xcontent.XContentParser;
 import org.elasticsearch.test.ESTestCase;
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
+import org.elasticsearch.xpack.watcher.test.MockTextTemplateEngine;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
-import static org.hamcrest.Matchers.equalTo;
+import static java.util.Collections.emptyMap;
+import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.is;
 
 public class EmailTests extends ESTestCase {
-    public void testEmailParserSelfGenerated() throws Exception {
-        String id = "test-id";
-        String from = randomFrom("from@from.com", null);
-        List<String> addresses = new ArrayList<>();
-        for( int i = 0; i < randomIntBetween(1, 5); ++i){
-            addresses.add("address" + i + "@test.com");
-        }
-        List<String> replyTo = randomFrom(addresses, null);
-        Email.Priority priority = randomFrom(Email.Priority.values());
-        DateTime sentDate = new DateTime(randomInt(), DateTimeZone.UTC);
-        List<String> to = randomFrom(addresses, null);
-        List<String> cc = randomFrom(addresses, null);
-        List<String> bcc = randomFrom(addresses, null);
-        String subject = randomFrom("Random Subject", "", null);
-        String textBody = randomFrom("Random Body", "", null);
-        String htmlBody = randomFrom("<hr /><b>BODY</b><hr />", "", null);
-        Map<String, Attachment> attachments = null;
 
-        Email email = new Email(id, from, replyTo, priority.name(), sentDate, to, cc, bcc, subject, textBody, htmlBody, attachments);
+    public void testParsingMultipleEmailAddresses() throws Exception {
+        Email template = Email.builder()
+            .from("sender@example.org")
+            .to("to1@example.org, to2@example.org")
+            .cc("cc1@example.org, cc2@example.org")
+            .bcc("bcc1@example.org, bcc2@example.org")
+            .textBody("blah")
+            .build();
 
-        XContentBuilder builder = XContentFactory.jsonBuilder();
-        email.toXContent(builder, ToXContent.EMPTY_PARAMS);
+        Email email = Email.render(new MockTextTemplateEngine(), emptyMap(), null, emptyMap(), template).id("foo").build();
 
-        XContentParser parser = createParser(builder);
-        parser.nextToken();
-
-        Email parsedEmail = Email.parse(parser);
-
-        assertThat(email.id, equalTo(parsedEmail.id));
-        assertThat(email.from, equalTo(parsedEmail.from));
-        assertThat(email.replyTo, equalTo(parsedEmail.replyTo));
-        assertThat(email.priority, equalTo(parsedEmail.priority));
-        assertThat(email.sentDate, equalTo(parsedEmail.sentDate));
-        assertThat(email.to, equalTo(parsedEmail.to));
-        assertThat(email.cc, equalTo(parsedEmail.cc));
-        assertThat(email.bcc, equalTo(parsedEmail.bcc));
-        assertThat(email.subject, equalTo(parsedEmail.subject));
-        assertThat(email.textBody, equalTo(parsedEmail.textBody));
-        assertThat(email.htmlBody, equalTo(parsedEmail.htmlBody));
+        assertThat(email.to.size(), is(2));
+        assertThat(email.to, containsInAnyOrder("to1@example.org", "to2@example.org"));
+        assertThat(email.cc.size(), is(2));
+        assertThat(email.cc, containsInAnyOrder("cc1@example.org", "cc2@example.org"));
+        assertThat(email.bcc.size(), is(2));
+        assertThat(email.bcc, containsInAnyOrder("bcc1@example.org", "bcc2@example.org"));
     }
-
 }

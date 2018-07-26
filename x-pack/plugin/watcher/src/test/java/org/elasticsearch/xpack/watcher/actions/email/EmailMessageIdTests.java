@@ -12,8 +12,8 @@ import org.elasticsearch.test.ESTestCase;
 import org.elasticsearch.xpack.core.watcher.execution.WatchExecutionContext;
 import org.elasticsearch.xpack.core.watcher.watch.Payload;
 import org.elasticsearch.xpack.watcher.common.text.TextTemplateEngine;
+import org.elasticsearch.xpack.watcher.notification.email.Email;
 import org.elasticsearch.xpack.watcher.notification.email.EmailService;
-import org.elasticsearch.xpack.watcher.notification.email.EmailTemplate;
 import org.elasticsearch.xpack.watcher.notification.email.HtmlSanitizer;
 import org.elasticsearch.xpack.watcher.notification.email.support.EmailServer;
 import org.elasticsearch.xpack.watcher.test.MockTextTemplateEngine;
@@ -54,7 +54,7 @@ public class EmailMessageIdTests extends ESTestCase {
         registeredSettings.addAll(EmailService.getSettings());
         ClusterSettings clusterSettings = new ClusterSettings(settings, registeredSettings);
         emailService = new EmailService(settings, null, clusterSettings);
-        EmailTemplate emailTemplate = EmailTemplate.builder().from("from@example.org").to("to@example.org")
+        Email emailTemplate = Email.builder().from("from@example.org").to("to@example.org")
                 .subject("subject").textBody("body").build();
         emailAction = new EmailAction(emailTemplate, null, null, null, null, null);
     }

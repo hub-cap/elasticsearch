@@ -62,7 +62,7 @@ public class ExecutableEmailAction extends ExecutableAction<EmailAction> {
             }
         }
 
-        Email.Builder email = action.getEmail().render(templateEngine, model, htmlSanitizer, attachments);
+        Email.Builder email = Email.render(templateEngine, model, htmlSanitizer, attachments, action.getEmail());
         email.id(actionId + "_" + ctx.id().value());
 
         if (ctx.simulateAction(actionId)) {

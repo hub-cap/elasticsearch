@@ -26,7 +26,7 @@ import org.elasticsearch.xpack.watcher.actions.webhook.WebhookAction;
 import org.elasticsearch.xpack.watcher.common.http.HttpMethod;
 import org.elasticsearch.xpack.watcher.common.http.HttpRequestTemplate;
 import org.elasticsearch.xpack.watcher.common.text.TextTemplate;
-import org.elasticsearch.xpack.watcher.notification.email.EmailTemplate;
+import org.elasticsearch.xpack.watcher.notification.email.Email;
 import org.elasticsearch.xpack.watcher.test.AbstractWatcherIntegrationTestCase;
 import org.elasticsearch.xpack.watcher.trigger.manual.ManualTriggerEvent;
 import org.elasticsearch.xpack.watcher.trigger.schedule.IntervalSchedule;
@@ -353,7 +353,7 @@ public class ActionThrottleTests extends AbstractWatcherIntegrationTestCase {
         EMAIL {
             @Override
             public Action.Builder<EmailAction> action() throws Exception {
-                EmailTemplate.Builder emailBuilder = EmailTemplate.builder();
+                Email.Builder emailBuilder = Email.builder();
                 emailBuilder.from("test@test.com");
                 emailBuilder.to("test@test.com");
                 emailBuilder.subject("test subject");

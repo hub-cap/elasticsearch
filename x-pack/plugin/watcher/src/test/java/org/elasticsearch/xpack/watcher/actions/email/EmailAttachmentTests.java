@@ -20,7 +20,7 @@ import org.elasticsearch.xpack.core.watcher.history.HistoryStoreField;
 import org.elasticsearch.xpack.watcher.common.http.HttpRequestTemplate;
 import org.elasticsearch.xpack.watcher.common.http.Scheme;
 import org.elasticsearch.xpack.watcher.condition.InternalAlwaysCondition;
-import org.elasticsearch.xpack.watcher.notification.email.EmailTemplate;
+import org.elasticsearch.xpack.watcher.notification.email.Email;
 import org.elasticsearch.xpack.watcher.notification.email.attachment.DataAttachment;
 import org.elasticsearch.xpack.watcher.notification.email.attachment.EmailAttachmentParser;
 import org.elasticsearch.xpack.watcher.notification.email.attachment.EmailAttachments;
@@ -170,7 +170,7 @@ public class EmailAttachmentTests extends AbstractWatcherIntegrationTestCase {
         emailAttachments.toXContent(tmpBuilder, ToXContent.EMPTY_PARAMS);
         tmpBuilder.endObject();
 
-        EmailTemplate.Builder emailBuilder = EmailTemplate.builder().from("_from").to("_to").subject("Subject");
+        Email.Builder emailBuilder = Email.builder().from("_from").to("_to").subject("Subject");
         WatchSourceBuilder watchSourceBuilder = watchBuilder()
                 .trigger(schedule(interval(5, IntervalSchedule.Interval.Unit.SECONDS)))
                 .input(noneInput())
