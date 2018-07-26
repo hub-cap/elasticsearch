@@ -58,6 +58,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonMap;
@@ -181,17 +182,24 @@ public class EmailActionTests extends ESTestCase {
         }
     }
 
+    private TextTemplate[] mapStringsToTemplates(List<String> strings) {
+        return strings.stream().map(TextTemplate::new).collect(Collectors.toList()).toArray(new TextTemplate[strings.size()]);
+    }
+
     public void testParser() throws Exception {
         TextTemplateEngine engine = mock(TextTemplateEngine.class);
         EmailService emailService = mock(EmailService.class);
         Profile profile = randomFrom(Profile.values());
         Email.Priority priority = randomFrom(Email.Priority.values());
-        Email.Address[] to = rarely() ? null : Email.AddressList.parse(randomBoolean() ? "to@domain" : "to1@domain,to2@domain").toArray();
-        Email.Address[] cc = rarely() ? null : Email.AddressList.parse(randomBoolean() ? "cc@domain" : "cc1@domain,cc2@domain").toArray();
-        Email.Address[] bcc = rarely() ? null : Email.AddressList.parse(
-                randomBoolean() ? "bcc@domain" : "bcc1@domain,bcc2@domain").toArray();
-        Email.Address[] replyTo = rarely() ? null : Email.AddressList.parse(
-                randomBoolean() ? "reply@domain" : "reply1@domain,reply2@domain").toArray();
+        TextTemplate[] to = rarely() ? null : mapStringsToTemplates(
+            Email.AddressList.parse(randomBoolean() ? "to@domain" : "to1@domain,to2@domain"));
+
+        TextTemplate[] cc = rarely() ? null : mapStringsToTemplates(
+            Email.AddressList.parse(randomBoolean() ? "cc@domain" : "cc1@domain,cc2@domain"));
+        TextTemplate[] bcc = rarely() ? null : mapStringsToTemplates(
+            Email.AddressList.parse(randomBoolean() ? "bcc@domain" : "bcc1@domain,bcc2@domain"));
+        TextTemplate[] replyTo = rarely() ? null : mapStringsToTemplates(
+            Email.AddressList.parse(randomBoolean() ? "reply@domain" : "reply1@domain,reply2@domain"));
         TextTemplate subject = randomBoolean() ? new TextTemplate("_subject") : null;
         TextTemplate textBody = randomBoolean() ? new TextTemplate("_text_body") : null;
         TextTemplate htmlBody = randomBoolean() ? new TextTemplate("_text_html") : null;
@@ -300,33 +308,25 @@ public class EmailActionTests extends ESTestCase {
         assertThat(executable.action().getAuth().password(), is(new Secret("_passwd".toCharArray())));
         assertThat(executable.action().getEmail().priority(), is(new TextTemplate(priority.name())));
         if (to != null) {
-            assertThat(executable.action().getEmail().to(), arrayContainingInAnyOrder(addressesToTemplates(to)));
+            assertThat(executable.action().getEmail().to(), arrayContainingInAnyOrder(to));
         } else {
             assertThat(executable.action().getEmail().to(), nullValue());
         }
         if (cc != null) {
-            assertThat(executable.action().getEmail().cc(), arrayContainingInAnyOrder(addressesToTemplates(cc)));
+            assertThat(executable.action().getEmail().cc(), arrayContainingInAnyOrder(cc));
         } else {
             assertThat(executable.action().getEmail().cc(), nullValue());
         }
         if (bcc != null) {
-            assertThat(executable.action().getEmail().bcc(), arrayContainingInAnyOrder(addressesToTemplates(bcc)));
+            assertThat(executable.action().getEmail().bcc(), arrayContainingInAnyOrder(bcc));
         } else {
             assertThat(executable.action().getEmail().bcc(), nullValue());
         }
         if (replyTo != null) {
-            assertThat(executable.action().getEmail().replyTo(), arrayContainingInAnyOrder(addressesToTemplates(replyTo)));
+            assertThat(executable.action().getEmail().replyTo(), arrayContainingInAnyOrder(replyTo));
         } else {
             assertThat(executable.action().getEmail().replyTo(), nullValue());
         }
-    }
-
-    private static TextTemplate[] addressesToTemplates(Email.Address[] addresses) {
-        TextTemplate[] templates = new TextTemplate[addresses.length];
-        for (int i = 0; i < templates.length; i++) {
-            templates[i] = new TextTemplate(addresses[i].toString());
-        }
-        return templates;
     }
 
     public void testParserSelfGenerated() throws Exception {

@@ -22,24 +22,23 @@ import static org.hamcrest.Matchers.equalTo;
 public class EmailTests extends ESTestCase {
     public void testEmailParserSelfGenerated() throws Exception {
         String id = "test-id";
-        Email.Address from = randomFrom(new Email.Address("from@from.com"), null);
-        List<Email.Address> addresses = new ArrayList<>();
+        String from = randomFrom("from@from.com", null);
+        List<String> addresses = new ArrayList<>();
         for( int i = 0; i < randomIntBetween(1, 5); ++i){
-            addresses.add(new Email.Address("address" + i + "@test.com"));
+            addresses.add("address" + i + "@test.com");
         }
-        Email.AddressList possibleList = new Email.AddressList(addresses);
-        Email.AddressList replyTo = randomFrom(possibleList, null);
+        List<String> replyTo = randomFrom(addresses, null);
         Email.Priority priority = randomFrom(Email.Priority.values());
         DateTime sentDate = new DateTime(randomInt(), DateTimeZone.UTC);
-        Email.AddressList to = randomFrom(possibleList, null);
-        Email.AddressList cc = randomFrom(possibleList, null);
-        Email.AddressList bcc = randomFrom(possibleList, null);
+        List<String> to = randomFrom(addresses, null);
+        List<String> cc = randomFrom(addresses, null);
+        List<String> bcc = randomFrom(addresses, null);
         String subject = randomFrom("Random Subject", "", null);
         String textBody = randomFrom("Random Body", "", null);
         String htmlBody = randomFrom("<hr /><b>BODY</b><hr />", "", null);
         Map<String, Attachment> attachments = null;
 
-        Email email = new Email(id, from, replyTo, priority, sentDate, to, cc, bcc, subject, textBody, htmlBody, attachments);
+        Email email = new Email(id, from, replyTo, priority.name(), sentDate, to, cc, bcc, subject, textBody, htmlBody, attachments);
 
         XContentBuilder builder = XContentFactory.jsonBuilder();
         email.toXContent(builder, ToXContent.EMPTY_PARAMS);

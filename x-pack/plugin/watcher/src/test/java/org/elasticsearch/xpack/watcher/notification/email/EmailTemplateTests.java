@@ -105,13 +105,10 @@ public class EmailTemplateTests extends ESTestCase {
         Email email = template.render(new MockTextTemplateEngine(), emptyMap(), null, emptyMap()).id("foo").build();
 
         assertThat(email.to.size(), is(2));
-        assertThat(email.to, containsInAnyOrder(new Email.Address("to1@example.org"),
-                new Email.Address("to2@example.org")));
+        assertThat(email.to, containsInAnyOrder("to1@example.org", "to2@example.org"));
         assertThat(email.cc.size(), is(2));
-        assertThat(email.cc, containsInAnyOrder(new Email.Address("cc1@example.org"),
-                new Email.Address("cc2@example.org")));
+        assertThat(email.cc, containsInAnyOrder("cc1@example.org", "cc2@example.org"));
         assertThat(email.bcc.size(), is(2));
-        assertThat(email.bcc, containsInAnyOrder(new Email.Address("bcc1@example.org"),
-                new Email.Address("bcc2@example.org")));
+        assertThat(email.bcc, containsInAnyOrder("bcc1@example.org", "bcc2@example.org"));
     }
 }

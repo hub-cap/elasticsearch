@@ -26,6 +26,7 @@ import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.security.PrivilegedActionException;
 import java.security.PrivilegedExceptionAction;
+import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 
@@ -291,12 +292,12 @@ public class Account {
          */
         static class EmailDefaults {
 
-            final Email.Address from;
-            final Email.AddressList replyTo;
-            final Email.Priority priority;
-            final Email.AddressList to;
-            final Email.AddressList cc;
-            final Email.AddressList bcc;
+            final String from;
+            final List<String> replyTo;
+            final String priority;
+            final List<String> to;
+            final List<String> cc;
+            final List<String> bcc;
             final String subject;
 
             EmailDefaults(String accountName, Settings settings) {

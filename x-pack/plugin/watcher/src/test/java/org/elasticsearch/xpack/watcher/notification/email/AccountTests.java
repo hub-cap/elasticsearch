@@ -166,7 +166,7 @@ public class AccountTests extends ESTestCase {
 
         Email email = Email.builder()
                 .id("_id")
-                .from(new Email.Address("from@domain.com"))
+                .from("from@domain.com")
                 .to(Email.AddressList.parse("To<to@domain.com>"))
                 .subject("_subject")
                 .textBody("_text_body")
@@ -201,7 +201,7 @@ public class AccountTests extends ESTestCase {
 
         Email email = Email.builder()
                 .id("_id")
-                .from(new Email.Address("from@domain.com"))
+                .from("from@domain.com")
                 .to(Email.AddressList.parse("TO<to@domain.com>"))
                 .cc(Email.AddressList.parse("CC1<cc1@domain.com>,cc2@domain.com"))
                 .bcc(Email.AddressList.parse("BCC1<bcc1@domain.com>,bcc2@domain.com"))
@@ -239,7 +239,7 @@ public class AccountTests extends ESTestCase {
 
         Email email = Email.builder()
                 .id("_id")
-                .from(new Email.Address("from@domain.com"))
+                .from("from@domain.com")
                 .to(Email.AddressList.parse("To<to@domain.com>"))
                 .subject("_subject")
                 .textBody("_text_body")

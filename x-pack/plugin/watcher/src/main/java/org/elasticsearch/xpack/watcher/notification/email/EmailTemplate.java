@@ -89,22 +89,22 @@ public class EmailTemplate implements ToXContentObject {
             builder.from(engine.render(from, model));
         }
         if (replyTo != null) {
-            Email.AddressList addresses = templatesToAddressList(engine, replyTo, model);
+            List<String> addresses = templatesToAddressList(engine, replyTo, model);
             builder.replyTo(addresses);
         }
         if (priority != null) {
             builder.priority(Email.Priority.resolve(engine.render(priority, model)));
         }
         if (to != null) {
-            Email.AddressList addresses = templatesToAddressList(engine, to, model);
+            List<String> addresses = templatesToAddressList(engine, to, model);
             builder.to(addresses);
         }
         if (cc != null) {
-            Email.AddressList addresses = templatesToAddressList(engine, cc, model);
+            List<String> addresses = templatesToAddressList(engine, cc, model);
             builder.cc(addresses);
         }
         if (bcc != null) {
-            Email.AddressList addresses = templatesToAddressList(engine, bcc, model);
+            List<String> addresses = templatesToAddressList(engine, bcc, model);
             builder.bcc(addresses);
         }
         if (subject != null) {
@@ -126,13 +126,13 @@ public class EmailTemplate implements ToXContentObject {
         return builder;
     }
 
-    private static Email.AddressList templatesToAddressList(TextTemplateEngine engine, TextTemplate[] templates,
+    private static List<String> templatesToAddressList(TextTemplateEngine engine, TextTemplate[] templates,
                                                             Map<String, Object> model) throws AddressException {
-        List<Email.Address> addresses = new ArrayList<>(templates.length);
+        List<String> addresses = new ArrayList<>(templates.length);
         for (TextTemplate template : templates) {
             Email.AddressList.parse(engine.render(template, model)).forEach(addresses::add);
         }
-        return new Email.AddressList(addresses);
+        return addresses;
     }
 
     @Override

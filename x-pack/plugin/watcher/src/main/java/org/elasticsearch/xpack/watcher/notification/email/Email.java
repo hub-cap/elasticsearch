@@ -8,7 +8,6 @@ package org.elasticsearch.xpack.watcher.notification.email;
 import org.elasticsearch.ElasticsearchParseException;
 import org.elasticsearch.common.ParseField;
 import org.elasticsearch.common.settings.Settings;
-import org.elasticsearch.common.xcontent.ToXContentFragment;
 import org.elasticsearch.common.xcontent.ToXContentObject;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentParser;
@@ -16,12 +15,8 @@ import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -36,20 +31,20 @@ import static java.util.Collections.unmodifiableMap;
 public class Email implements ToXContentObject {
 
     final String id;
-    final Address from;
-    final AddressList replyTo;
-    final Priority priority;
+    final String from;
+    final List<String> replyTo;
+    final String priority;
     final DateTime sentDate;
-    final AddressList to;
-    final AddressList cc;
-    final AddressList bcc;
+    final List<String> to;
+    final List<String> cc;
+    final List<String> bcc;
     final String subject;
     final String textBody;
     final String htmlBody;
     final Map<String, Attachment> attachments;
 
-    public Email(String id, Address from, AddressList replyTo, Priority priority, DateTime sentDate,
-                 AddressList to, AddressList cc, AddressList bcc, String subject, String textBody, String htmlBody,
+    public Email(String id, String from, List<String> replyTo, String priority, DateTime sentDate,
+                 List<String> to, List<String> cc, List<String> bcc, String subject, String textBody, String htmlBody,
                  Map<String, Attachment> attachments) {
 
         this.id = id;
@@ -70,15 +65,15 @@ public class Email implements ToXContentObject {
         return id;
     }
 
-    public Address from() {
+    public String from() {
         return from;
     }
 
-    public AddressList replyTo() {
+    public List<String> replyTo() {
         return replyTo;
     }
 
-    public Priority priority() {
+    public String priority() {
         return priority;
     }
 
@@ -86,15 +81,15 @@ public class Email implements ToXContentObject {
         return sentDate;
     }
 
-    public AddressList to() {
+    public List<String> to() {
         return to;
     }
 
-    public AddressList cc() {
+    public List<String> cc() {
         return cc;
     }
 
-    public AddressList bcc() {
+    public List<String> bcc() {
         return bcc;
     }
 
@@ -119,23 +114,23 @@ public class Email implements ToXContentObject {
         builder.startObject();
         builder.field(Field.ID.getPreferredName(), id);
         if (from != null) {
-            builder.field(Field.FROM.getPreferredName(), from.toUnicodeString());
+            builder.field(Field.FROM.getPreferredName(), from);
         }
         if (replyTo != null) {
-            builder.field(Field.REPLY_TO.getPreferredName(), replyTo, params);
+            builder.field(Field.REPLY_TO.getPreferredName(), replyTo);
         }
         if (priority != null) {
-            builder.field(Field.PRIORITY.getPreferredName(), priority.value());
+            builder.field(Field.PRIORITY.getPreferredName(), priority);
         }
         builder.timeField(Field.SENT_DATE.getPreferredName(), sentDate);
         if (to != null) {
-            builder.field(Field.TO.getPreferredName(), to, params);
+            builder.field(Field.TO.getPreferredName(), to);
         }
         if (cc != null) {
-            builder.field(Field.CC.getPreferredName(), cc, params);
+            builder.field(Field.CC.getPreferredName(), cc);
         }
         if (bcc != null) {
-            builder.field(Field.BCC.getPreferredName(), bcc, params);
+            builder.field(Field.BCC.getPreferredName(), bcc);
         }
         builder.field(Field.SUBJECT.getPreferredName(), subject);
         if (textBody != null || htmlBody != null) {
@@ -230,13 +225,13 @@ public class Email implements ToXContentObject {
     public static class Builder {
 
         private String id;
-        private Address from;
-        private AddressList replyTo;
-        private Priority priority;
+        private String from;
+        private List<String> replyTo;
+        private String priority;
         private DateTime sentDate;
-        private AddressList to;
-        private AddressList cc;
-        private AddressList bcc;
+        private List<String> to;
+        private List<String> cc;
+        private List<String> bcc;
         private String subject;
         private String textBody;
         private String htmlBody;
@@ -266,25 +261,17 @@ public class Email implements ToXContentObject {
             return this;
         }
 
-        public Builder from(String address) throws AddressException {
-            return from(new Address(address));
-        }
-
-        public Builder from(Address from) {
+        public Builder from(String from) {
             this.from = from;
             return this;
         }
 
-        public Builder replyTo(AddressList replyTo) {
+        public Builder replyTo(List<String> replyTo) {
             this.replyTo = replyTo;
             return this;
         }
 
-        public Builder replyTo(String addresses) throws AddressException {
-            return replyTo(Email.AddressList.parse(addresses));
-        }
-
-        public Builder priority(Priority priority) {
+        public Builder priority(String priority) {
             this.priority = priority;
             return this;
         }
@@ -294,33 +281,21 @@ public class Email implements ToXContentObject {
             return this;
         }
 
-        public Builder to(String addresses) throws AddressException {
-            return to(AddressList.parse(addresses));
-        }
-
-        public Builder to(AddressList to) {
+        public Builder to(List<String> to) {
             this.to = to;
             return this;
         }
 
-        public AddressList to() {
+        public List<String> to() {
             return to;
         }
 
-        public Builder cc(String addresses) throws AddressException {
-            return cc(AddressList.parse(addresses));
-        }
-
-        public Builder cc(AddressList cc) {
+        public Builder cc(List<String> cc) {
             this.cc = cc;
             return this;
         }
 
-        public Builder bcc(String addresses) throws AddressException {
-            return bcc(AddressList.parse(addresses));
-        }
-
-        public Builder bcc(AddressList bcc) {
+        public Builder bcc(List<String> bcc) {
             this.bcc = bcc;
             return this;
         }
@@ -359,7 +334,6 @@ public class Email implements ToXContentObject {
             attachments = null;
             return email;
         }
-
     }
 
     public enum Priority {
@@ -378,20 +352,20 @@ public class Email implements ToXContentObject {
             this.value = value;
         }
 
-        public void applyTo(MimeMessage message) throws MessagingException {
-            message.setHeader(HEADER, String.valueOf(value));
+        public static void applyTo(MimeMessage message, String priority) throws MessagingException {
+            message.setHeader(HEADER, String.valueOf(resolve(priority, null).value));
         }
 
         public String value() {
             return name().toLowerCase(Locale.ROOT);
         }
 
-        public static Priority resolve(String name) {
+        public static String resolve(String name) {
             Priority priority = resolve(name, null);
             if (priority == null) {
                 throw new IllegalArgumentException("[" + name + "] is not a valid email priority");
             }
-            return priority;
+            return priority.name();
         }
 
         public static Priority resolve(String name, Priority defaultPriority) {
@@ -409,7 +383,7 @@ public class Email implements ToXContentObject {
             }
         }
 
-        public static Priority parse(Settings settings, String name) {
+        public static String parse(Settings settings, String name) {
             String value = settings.get(name);
             if (value == null) {
                 return null;
@@ -418,24 +392,16 @@ public class Email implements ToXContentObject {
         }
     }
 
-    public static class Address extends javax.mail.internet.InternetAddress implements ToXContentFragment {
+    public static class Address {
 
         public static final ParseField ADDRESS_NAME_FIELD = new ParseField("name");
         public static final ParseField ADDRESS_EMAIL_FIELD = new ParseField("email");
 
-        public Address(String address) throws AddressException {
-            super(address);
-        }
-
-        public Address(String address, String personal) throws UnsupportedEncodingException {
-            super(address, personal, StandardCharsets.UTF_8.name());
-        }
-
-        public static Address parse(String field, XContentParser.Token token, XContentParser parser) throws IOException {
+        public static String parse(String field, XContentParser.Token token, XContentParser parser) throws IOException {
             if (token == XContentParser.Token.VALUE_STRING) {
                 String text = parser.text();
                 try {
-                    return new Email.Address(parser.text());
+                    return new InternetAddress(parser.text()).toString();
                 } catch (AddressException ae) {
                     String msg = "could not parse [" + text + "] in field [" + field + "] as address. address must be RFC822 encoded";
                     throw new ElasticsearchParseException(msg, ae);
@@ -465,7 +431,7 @@ public class Email implements ToXContentObject {
                     throw new ElasticsearchParseException(msg);
                 }
                 try {
-                    return name != null ? new Email.Address(email, name) : new Email.Address(email);
+                    return name != null ? new InternetAddress(email, name).toString() : new InternetAddress(email).toString();
                 } catch (AddressException ae) {
                     throw new ElasticsearchParseException("could not parse [" + field + "] as address", ae);
                 }
@@ -475,83 +441,44 @@ public class Email implements ToXContentObject {
                     "an object specifying the address [name] and [email]", field);
         }
 
-        public static Address parse(Settings settings, String name) {
+        public static String parse(Settings settings, String name) {
             String value = settings.get(name);
             try {
-                return value != null ? new Address(value) : null;
+                return value != null ? new InternetAddress(value).toString() : null;
             } catch (AddressException ae) {
                 throw new IllegalArgumentException("[" + value + "] is not a valid RFC822 email address", ae);
             }
         }
-
-        @Override
-        public XContentBuilder toXContent(XContentBuilder builder, Params params) throws IOException {
-            return builder.value(toString());
-        }
     }
 
-    public static class AddressList implements Iterable<Address>, ToXContentObject {
+    public static class AddressList {
 
-        public static final AddressList EMPTY = new AddressList(Collections.<Address>emptyList());
-
-        private final List<Address> addresses;
-
-        public AddressList(List<Address> addresses) {
-            this.addresses = addresses;
-        }
-
-        public boolean isEmpty() {
-            return addresses.isEmpty();
-        }
-
-        @Override
-        public Iterator<Address> iterator() {
-            return addresses.iterator();
-        }
-
-        public Address[] toArray() {
-            return addresses.toArray(new Address[addresses.size()]);
-        }
-
-        public int size() {
-            return addresses.size();
-        }
-
-        @Override
-        public XContentBuilder toXContent(XContentBuilder builder, Params params) throws IOException {
-            builder.startArray();
-            for (Address address : addresses) {
-                builder.value(address.toUnicodeString());
-            }
-            return builder.endArray();
-        }
-
-        public static AddressList parse(String text) throws AddressException {
+        public static List<String> parse(String text) throws AddressException {
             InternetAddress[] addresses = InternetAddress.parse(text);
-            List<Address> list = new ArrayList<>(addresses.length);
+            List<String> list = new ArrayList<>(addresses.length);
             for (InternetAddress address : addresses) {
-                list.add(new Address(address.toUnicodeString()));
+                list.add(new InternetAddress(address.toUnicodeString()).toString());
             }
-            return new AddressList(list);
+            return list;
         }
 
-        public static AddressList parse(Settings settings, String name) {
+        public static List<String> parse(Settings settings, String name) {
             List<String> addresses = settings.getAsList(name);
             if (addresses == null || addresses.isEmpty()) {
                 return null;
             }
             try {
-                List<Address> list = new ArrayList<>(addresses.size());
+                List<String> list = new ArrayList<>(addresses.size());
                 for (String address : addresses) {
-                    list.add(new Address(address));
+                    list.add(new InternetAddress(address).toString());
                 }
-                return new AddressList(list);
+                return list;
             } catch (AddressException ae) {
                 throw new IllegalArgumentException("[" + settings.get(name) + "] is not a valid list of RFC822 email addresses", ae);
             }
         }
 
-        public static Email.AddressList parse(String field, XContentParser.Token token, XContentParser parser) throws IOException {
+        public static List<String> parse(String field, XContentParser.Token token, XContentParser parser) throws IOException {
             if (token == XContentParser.Token.VALUE_STRING) {
                 String text = parser.text();
                 try {
@@ -562,31 +489,14 @@ public class Email implements ToXContentObject {
                 }
             }
             if (token == XContentParser.Token.START_ARRAY) {
-                List<Email.Address> addresses = new ArrayList<>();
+                List<String> addresses = new ArrayList<>();
                 while ((token = parser.nextToken()) != XContentParser.Token.END_ARRAY) {
                     addresses.add(Address.parse(field, token, parser));
                 }
-                return new Email.AddressList(addresses);
+                return addresses;
             }
             throw new ElasticsearchParseException("could not parse [" + field + "] as address list. field must either be a string " +
                     "(comma-separated list of RFC822 encoded addresses) or an array of objects representing addresses");
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
-
-            AddressList addresses1 = (AddressList) o;
-
-            if (!addresses.equals(addresses1.addresses)) return false;
-
-            return true;
-        }
-
-        @Override
-        public int hashCode() {
-            return addresses.hashCode();
         }
     }
 

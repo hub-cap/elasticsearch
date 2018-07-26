@@ -30,7 +30,7 @@ public class ProfileTests extends ESTestCase {
         Email email = Email.builder()
                 .id("foo")
                 .from("foo@example.org")
-                .to("bar@example.org")
+                .to(Email.AddressList.parse("bar@example.org"))
                 .subject(randomAlphaOfLength(10))
                 .attach(attachment)
                 .build();

@@ -7,11 +7,15 @@ package org.elasticsearch.xpack.watcher.notification.email;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.Locale;
 
+import javax.mail.Address;
 import javax.mail.Message;
 import javax.mail.MessagingException;
 import javax.mail.Session;
+import javax.mail.internet.AddressException;
+import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
@@ -177,18 +181,18 @@ public enum Profile {
             message.setFrom(email.from);
         }
         if (email.replyTo != null) {
-            message.setReplyTo(email.replyTo.toArray());
+            message.setReplyTo(extractAddressesFromString(email.replyTo));
         }
         if (email.priority != null) {
-            email.priority.applyTo(message);
+            Email.Priority.applyTo(message, email.priority);
         }
         message.setSentDate(email.sentDate.toDate());
-        message.setRecipients(Message.RecipientType.TO, email.to.toArray());
+        message.setRecipients(Message.RecipientType.TO, extractAddressesFromString(email.to));
         if (email.cc != null) {
-            message.setRecipients(Message.RecipientType.CC, email.cc.toArray());
+            message.setRecipients(Message.RecipientType.CC, extractAddressesFromString(email.cc));
         }
         if (email.bcc != null) {
-            message.setRecipients(Message.RecipientType.BCC, email.bcc.toArray());
+            message.setRecipients(Message.RecipientType.BCC, extractAddressesFromString(email.bcc));
         }
         if (email.subject != null) {
             message.setSubject(email.subject, StandardCharsets.UTF_8.name());
@@ -197,6 +201,14 @@ public enum Profile {
         }
 
         return message;
+    }
+
+    private static Address[] extractAddressesFromString(List<String> strings) throws AddressException {
+        Address[] addresses = new Address[strings.size()];
+        for (int i=0;i<strings.size();i++ ) {
+            addresses[i] = new InternetAddress(strings.get(i));
+        }
+        return addresses;
     }
 
     static MimeBodyPart wrap(MimeMultipart multipart, String contentType) throws MessagingException {
