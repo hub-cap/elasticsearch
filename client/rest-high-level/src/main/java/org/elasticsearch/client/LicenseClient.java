@@ -86,7 +86,7 @@ public final class LicenseClient {
      * @throws IOException in case there is a problem sending the request or parsing back the response
      */
     public GetLicenseResponse getLicense(GetLicenseRequest request, RequestOptions options) throws IOException {
-        return restHighLevelClient.performRequest(request, RequestConverters::getLicense, options,
+        return restHighLevelClient.performValidatedRequest(request, RequestConverters::getLicense, options,
             response -> new GetLicenseResponse(convertResponseToJson(response)), emptySet());
     }
 
@@ -96,7 +96,7 @@ public final class LicenseClient {
      * @param listener the listener to be notified upon request completion
      */
     public void getLicenseAsync(GetLicenseRequest request, RequestOptions options, ActionListener<GetLicenseResponse> listener) {
-        restHighLevelClient.performRequestAsync(request, RequestConverters::getLicense, options,
+        restHighLevelClient.performValidatedRequestAsync(request, RequestConverters::getLicense, options,
             response -> new GetLicenseResponse(convertResponseToJson(response)), listener, emptySet());
     }
 

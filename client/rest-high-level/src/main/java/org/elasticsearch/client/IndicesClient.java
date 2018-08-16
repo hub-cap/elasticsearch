@@ -311,7 +311,7 @@ public final class IndicesClient {
      * @throws IOException in case there is a problem sending the request
      */
     public boolean existsAlias(GetAliasesRequest getAliasesRequest, RequestOptions options) throws IOException {
-        return restHighLevelClient.performRequest(getAliasesRequest, RequestConverters::existsAlias, options,
+        return restHighLevelClient.performValidatedRequest(getAliasesRequest, RequestConverters::existsAlias, options,
                 RestHighLevelClient::convertExistsResponse, emptySet());
     }
 
@@ -324,7 +324,7 @@ public final class IndicesClient {
      * @param listener the listener to be notified upon request completion
      */
     public void existsAliasAsync(GetAliasesRequest getAliasesRequest, RequestOptions options, ActionListener<Boolean> listener) {
-        restHighLevelClient.performRequestAsync(getAliasesRequest, RequestConverters::existsAlias, options,
+        restHighLevelClient.performValidatedRequestAsync(getAliasesRequest, RequestConverters::existsAlias, options,
                 RestHighLevelClient::convertExistsResponse, listener, emptySet());
     }
 
@@ -557,7 +557,7 @@ public final class IndicesClient {
      * @throws IOException in case there is a problem sending the request
      */
     public boolean exists(GetIndexRequest request, RequestOptions options) throws IOException {
-        return restHighLevelClient.performRequest(
+        return restHighLevelClient.performValidatedRequest(
             request,
             RequestConverters::indicesExist,
             options,
@@ -575,7 +575,7 @@ public final class IndicesClient {
      * @param listener the listener to be notified upon request completion
      */
     public void existsAsync(GetIndexRequest request, RequestOptions options, ActionListener<Boolean> listener) {
-        restHighLevelClient.performRequestAsync(
+        restHighLevelClient.performValidatedRequestAsync(
                 request,
                 RequestConverters::indicesExist,
                 options,

@@ -18,72 +18,28 @@
  */
 package org.elasticsearch.protocol.xpack.watcher;
 
-import org.elasticsearch.action.ActionRequest;
-import org.elasticsearch.action.ActionRequestValidationException;
-import org.elasticsearch.action.ValidateActions;
-import org.elasticsearch.common.io.stream.StreamInput;
-import org.elasticsearch.common.io.stream.StreamOutput;
-import org.elasticsearch.common.lucene.uid.Versions;
+import org.elasticsearch.protocol.xpack.common.Validatable;
+import org.elasticsearch.protocol.xpack.common.ValidationException;
 
-import java.io.IOException;
-
-/**
- * A delete watch request to delete an watch by name (id)
- */
-public class DeleteWatchRequest extends ActionRequest {
-
-    private String id;
-    private long version = Versions.MATCH_ANY;
-
-    public DeleteWatchRequest() {
-        this(null);
-    }
+public class DeleteWatchRequest implements Validatable {
+    private final String id;
 
     public DeleteWatchRequest(String id) {
         this.id = id;
     }
 
-    /**
-     * @return The name of the watch to be deleted
-     */
     public String getId() {
         return id;
     }
 
-    /**
-     * Sets the name of the watch to be deleted
-     */
-    public void setId(String id) {
-        this.id = id;
-    }
-
     @Override
-    public ActionRequestValidationException validate() {
-        ActionRequestValidationException validationException = null;
+    public ValidationException validate() {
+        ValidationException validationException = new ValidationException();
         if (id == null){
-            validationException = ValidateActions.addValidationError("watch id is missing", validationException);
+            validationException.addValidationError("watch id is missing");
         } else if (PutWatchRequest.isValidId(id) == false) {
-            validationException = ValidateActions.addValidationError("watch id contains whitespace", validationException);
+            validationException.addValidationError("watch id contains whitespace");
         }
         return validationException;
-    }
-
-    @Override
-    public void readFrom(StreamInput in) throws IOException {
-        super.readFrom(in);
-        id = in.readString();
-        version = in.readLong();
-    }
-
-    @Override
-    public void writeTo(StreamOutput out) throws IOException {
-        super.writeTo(out);
-        out.writeString(id);
-        out.writeLong(version);
-    }
-
-    @Override
-    public String toString() {
-        return "delete [" + id + "]";
     }
 }

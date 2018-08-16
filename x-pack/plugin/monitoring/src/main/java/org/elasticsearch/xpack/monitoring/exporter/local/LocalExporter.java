@@ -36,7 +36,7 @@ import org.elasticsearch.index.IndexNotFoundException;
 import org.elasticsearch.ingest.IngestMetadata;
 import org.elasticsearch.ingest.PipelineConfiguration;
 import org.elasticsearch.license.XPackLicenseState;
-import org.elasticsearch.protocol.xpack.watcher.DeleteWatchRequest;
+import org.elasticsearch.xpack.core.watcher.transport.actions.delete.DeleteWatchRequest;
 import org.elasticsearch.protocol.xpack.watcher.PutWatchRequest;
 import org.elasticsearch.protocol.xpack.watcher.PutWatchResponse;
 import org.elasticsearch.xpack.core.XPackClient;

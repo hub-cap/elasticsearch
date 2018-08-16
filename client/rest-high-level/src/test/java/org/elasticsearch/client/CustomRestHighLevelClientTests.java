@@ -52,7 +52,6 @@ import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 import static java.util.Collections.emptySet;
-import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.doAnswer;
@@ -124,9 +123,9 @@ public class CustomRestHighLevelClientTests extends ESTestCase {
     public void testMethodsVisibility() {
         final String[] methodNames = new String[]{"parseEntity",
                                                   "parseResponseException",
-                                                  "performRequest",
+                                                  "performValidatedRequest",
                                                   "performRequestAndParseEntity",
-                                                  "performRequestAsync",
+                                                  "performValidatedRequestAsync",
                                                   "performRequestAsyncAndParseEntity"};
 
         final Set<String> protectedMethods =  Arrays.stream(RestHighLevelClient.class.getDeclaredMethods())
@@ -134,7 +133,7 @@ public class CustomRestHighLevelClientTests extends ESTestCase {
                                                      .map(Method::getName)
                                                      .collect(Collectors.toCollection(TreeSet::new));
 
-        assertThat(protectedMethods, contains(methodNames));
+        assertTrue(protectedMethods.containsAll(Arrays.asList(methodNames)));
     }
 
     /**
@@ -181,7 +180,7 @@ public class CustomRestHighLevelClientTests extends ESTestCase {
         }
 
         MainResponse custom(MainRequest mainRequest, RequestOptions options) throws IOException {
-            return performRequest(mainRequest, this::toRequest, options, this::toResponse, emptySet());
+            return performValidatedRequest(mainRequest, this::toRequest, options, this::toResponse, emptySet());
         }
 
         MainResponse customAndParse(MainRequest mainRequest, RequestOptions options) throws IOException {
@@ -189,7 +188,7 @@ public class CustomRestHighLevelClientTests extends ESTestCase {
         }
 
         void customAsync(MainRequest mainRequest, RequestOptions options, ActionListener<MainResponse> listener) {
-            performRequestAsync(mainRequest, this::toRequest, options, this::toResponse, listener, emptySet());
+            performValidatedRequestAsync(mainRequest, this::toRequest, options, this::toResponse, listener, emptySet());
         }
 
         void customAndParseAsync(MainRequest mainRequest, RequestOptions options, ActionListener<MainResponse> listener) {

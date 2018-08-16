@@ -66,6 +66,8 @@ import org.elasticsearch.common.xcontent.XContentType;
 import org.elasticsearch.index.rankeval.RankEvalRequest;
 import org.elasticsearch.index.rankeval.RankEvalResponse;
 import org.elasticsearch.plugins.spi.NamedXContentProvider;
+import org.elasticsearch.protocol.xpack.common.Validatable;
+import org.elasticsearch.protocol.xpack.common.ValidationException;
 import org.elasticsearch.rest.BytesRestResponse;
 import org.elasticsearch.rest.RestStatus;
 import org.elasticsearch.script.mustache.MultiSearchTemplateRequest;
@@ -391,8 +393,8 @@ public class RestHighLevelClient implements Closeable {
      * @throws IOException in case there is a problem sending the request
      */
     public final boolean ping(RequestOptions options) throws IOException {
-        return performRequest(new MainRequest(), (request) -> RequestConverters.ping(), options, RestHighLevelClient::convertExistsResponse,
-                emptySet());
+        return performValidatedRequest(new MainRequest(), (request) -> RequestConverters.ping(), options,
+            RestHighLevelClient::convertExistsResponse, emptySet());
     }
 
     /**
@@ -492,7 +494,8 @@ public class RestHighLevelClient implements Closeable {
      * @throws IOException in case there is a problem sending the request
      */
     public final boolean exists(GetRequest getRequest, RequestOptions options) throws IOException {
-        return performRequest(getRequest, RequestConverters::exists, options, RestHighLevelClient::convertExistsResponse, emptySet());
+        return performValidatedRequest(getRequest, RequestConverters::exists, options, RestHighLevelClient::convertExistsResponse,
+            emptySet());
     }
 
     /**
@@ -503,7 +506,7 @@ public class RestHighLevelClient implements Closeable {
      * @param listener the listener to be notified upon request completion
      */
     public final void existsAsync(GetRequest getRequest, RequestOptions options, ActionListener<Boolean> listener) {
-        performRequestAsync(getRequest, RequestConverters::exists, options, RestHighLevelClient::convertExistsResponse, listener,
+        performValidatedRequestAsync(getRequest, RequestConverters::exists, options, RestHighLevelClient::convertExistsResponse, listener,
                 emptySet());
     }
 
@@ -784,7 +787,7 @@ public class RestHighLevelClient implements Closeable {
      * @throws IOException in case there is a problem sending the request or parsing back the response
      */
     public final ExplainResponse explain(ExplainRequest explainRequest, RequestOptions options) throws IOException {
-        return performRequest(explainRequest, RequestConverters::explain, options,
+        return performValidatedRequest(explainRequest, RequestConverters::explain, options,
             response -> {
                 CheckedFunction<XContentParser, ExplainResponse, IOException> entityParser =
                     parser -> ExplainResponse.fromXContent(parser, convertExistsResponse(response));
@@ -802,7 +805,7 @@ public class RestHighLevelClient implements Closeable {
      * @param listener the listener to be notified upon request completion
      */
     public final void explainAsync(ExplainRequest explainRequest, RequestOptions options, ActionListener<ExplainResponse> listener) {
-        performRequestAsync(explainRequest, RequestConverters::explain, options,
+        performValidatedRequestAsync(explainRequest, RequestConverters::explain, options,
             response -> {
                 CheckedFunction<XContentParser, ExplainResponse, IOException> entityParser =
                     parser -> ExplainResponse.fromXContent(parser, convertExistsResponse(response));
@@ -949,24 +952,56 @@ public class RestHighLevelClient implements Closeable {
             FieldCapabilitiesResponse::fromXContent, listener, emptySet());
     }
 
+    @Deprecated
     protected final <Req extends ActionRequest, Resp> Resp performRequestAndParseEntity(Req request,
                                                                             CheckedFunction<Req, Request, IOException> requestConverter,
                                                                             RequestOptions options,
                                                                             CheckedFunction<XContentParser, Resp, IOException> entityParser,
                                                                             Set<Integer> ignores) throws IOException {
-        return performRequest(request, requestConverter, options,
+        return performValidatedRequest(request, requestConverter, options,
                 response -> parseEntity(response.getEntity(), entityParser), ignores);
     }
 
-    protected final <Req extends ActionRequest, Resp> Resp performRequest(Req request,
-                                                          CheckedFunction<Req, Request, IOException> requestConverter,
-                                                          RequestOptions options,
-                                                          CheckedFunction<Response, Resp, IOException> responseConverter,
-                                                          Set<Integer> ignores) throws IOException {
+
+    protected final <Req extends Validatable, Resp> Resp performRequestAndParseEntity(Req request,
+                                                                          CheckedFunction<Req, Request, IOException> requestConverter,
+                                                                          RequestOptions options,
+                                                                          CheckedFunction<XContentParser, Resp, IOException> entityParser,
+                                                                          Set<Integer> ignores) throws IOException {
+        return performValidatedRequest(request, requestConverter, options,
+            response -> parseEntity(response.getEntity(), entityParser), ignores);
+    }
+
+    @Deprecated
+    protected final <Req extends ActionRequest, Resp> Resp performValidatedRequest(Req request,
+                                                                           CheckedFunction<Req, Request, IOException> requestConverter,
+                                                                           RequestOptions options,
+                                                                           CheckedFunction<Response, Resp, IOException> responseConverter,
+                                                                           Set<Integer> ignores) throws IOException {
         ActionRequestValidationException validationException = request.validate();
-        if (validationException != null) {
+        if (validationException != null && validationException.validationErrors().isEmpty() == false) {
             throw validationException;
         }
+        return performRequest(request, requestConverter, options, responseConverter, ignores);
+    }
+
+    protected final <Req extends Validatable, Resp> Resp performValidatedRequest(Req request,
+                                                                           CheckedFunction<Req, Request, IOException> requestConverter,
+                                                                           RequestOptions options,
+                                                                           CheckedFunction<Response, Resp, IOException> responseConverter,
+                                                                           Set<Integer> ignores) throws IOException {
+        ValidationException validationException = request.validate();
+        if (validationException != null && validationException.validationErrors().isEmpty() == false) {
+            throw validationException;
+        }
+        return performRequest(request, requestConverter, options, responseConverter, ignores);
+    }
+
+    private <Req, Resp> Resp performRequest(Req request,
+                                            CheckedFunction<Req, Request, IOException> requestConverter,
+                                            RequestOptions options,
+                                            CheckedFunction<Response, Resp, IOException> responseConverter,
+                                            Set<Integer> ignores) throws IOException {
         Request req = requestConverter.apply(request);
         req.setOptions(options);
         Response response;
@@ -994,25 +1029,57 @@ public class RestHighLevelClient implements Closeable {
         }
     }
 
+    @Deprecated
     protected final <Req extends ActionRequest, Resp> void performRequestAsyncAndParseEntity(Req request,
-                                                                 CheckedFunction<Req, Request, IOException> requestConverter,
-                                                                 RequestOptions options,
-                                                                 CheckedFunction<XContentParser, Resp, IOException> entityParser,
-                                                                 ActionListener<Resp> listener, Set<Integer> ignores) {
-        performRequestAsync(request, requestConverter, options,
+                                                                         CheckedFunction<Req, Request, IOException> requestConverter,
+                                                                         RequestOptions options,
+                                                                         CheckedFunction<XContentParser, Resp, IOException> entityParser,
+                                                                         ActionListener<Resp> listener, Set<Integer> ignores) {
+        performValidatedRequestAsync(request, requestConverter, options,
                 response -> parseEntity(response.getEntity(), entityParser), listener, ignores);
     }
 
-    protected final <Req extends ActionRequest, Resp> void performRequestAsync(Req request,
-                                                               CheckedFunction<Req, Request, IOException> requestConverter,
-                                                               RequestOptions options,
-                                                               CheckedFunction<Response, Resp, IOException> responseConverter,
-                                                               ActionListener<Resp> listener, Set<Integer> ignores) {
+    protected final <Req extends Validatable, Resp> void performRequestAsyncAndParseEntity(Req request,
+                                                                           CheckedFunction<Req, Request, IOException> requestConverter,
+                                                                           RequestOptions options,
+                                                                           CheckedFunction<XContentParser, Resp, IOException> entityParser,
+                                                                           ActionListener<Resp> listener, Set<Integer> ignores) {
+        performValidatedRequestAsync(request, requestConverter, options,
+            response -> parseEntity(response.getEntity(), entityParser), listener, ignores);
+    }
+
+    @Deprecated
+    protected final <Req extends ActionRequest, Resp> void performValidatedRequestAsync(Req request,
+                                                                            CheckedFunction<Req, Request, IOException> requestConverter,
+                                                                            RequestOptions options,
+                                                                            CheckedFunction<Response, Resp, IOException> responseConverter,
+                                                                            ActionListener<Resp> listener, Set<Integer> ignores) {
         ActionRequestValidationException validationException = request.validate();
-        if (validationException != null) {
+        if (validationException != null && validationException.validationErrors().isEmpty() == false) {
             listener.onFailure(validationException);
             return;
         }
+        performRequestAsync(request, requestConverter, options, responseConverter, listener, ignores);
+    }
+
+    protected final <Req extends Validatable, Resp> void performValidatedRequestAsync(Req request,
+                                                                          CheckedFunction<Req, Request, IOException> requestConverter,
+                                                                          RequestOptions options,
+                                                                          CheckedFunction<Response, Resp, IOException> responseConverter,
+                                                                          ActionListener<Resp> listener, Set<Integer> ignores) {
+        ValidationException validationException = request.validate();
+        if (validationException != null && validationException.validationErrors().isEmpty() == false) {
+            listener.onFailure(validationException);
+            return;
+        }
+        performRequestAsync(request, requestConverter, options, responseConverter, listener, ignores);
+    }
+
+    private <Req, Resp> void performRequestAsync(Req request,
+                                                 CheckedFunction<Req, Request, IOException> requestConverter,
+                                                 RequestOptions options,
+                                                 CheckedFunction<Response, Resp, IOException> responseConverter,
+                                                 ActionListener<Resp> listener, Set<Integer> ignores) {
         Request req;
         try {
             req = requestConverter.apply(request);

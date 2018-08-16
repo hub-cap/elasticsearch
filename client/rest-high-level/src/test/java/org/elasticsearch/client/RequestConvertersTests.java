@@ -2600,9 +2600,8 @@ public class RequestConvertersTests extends ESTestCase {
     }
 
     public void testXPackDeleteWatch() {
-        DeleteWatchRequest deleteWatchRequest = new DeleteWatchRequest();
         String watchId = randomAlphaOfLength(10);
-        deleteWatchRequest.setId(watchId);
+        DeleteWatchRequest deleteWatchRequest = new DeleteWatchRequest(watchId);
 
         Request request = RequestConverters.xPackWatcherDeleteWatch(deleteWatchRequest);
         assertEquals(HttpDelete.METHOD_NAME, request.getMethod());

@@ -18,28 +18,42 @@
  */
 package org.elasticsearch.protocol.xpack.watcher;
 
+import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentParser;
 import org.elasticsearch.test.AbstractXContentTestCase;
+import org.elasticsearch.test.ESTestCase;
 
 import java.io.IOException;
 
-public class DeleteWatchResponseTests extends AbstractXContentTestCase<DeleteWatchResponse> {
+import static org.elasticsearch.common.xcontent.XContentFactory.jsonBuilder;
+import static org.hamcrest.Matchers.equalTo;
 
-    @Override
-    protected DeleteWatchResponse createTestInstance() {
+public class DeleteWatchResponseTests extends ESTestCase {
+
+    private DeleteWatchResponse createTestInstance() {
         String id = randomAlphaOfLength(10);
         long version = randomLongBetween(1, 10);
         boolean found = randomBoolean();
         return new DeleteWatchResponse(id, version, found);
     }
 
-    @Override
     protected DeleteWatchResponse doParseInstance(XContentParser parser) throws IOException {
         return DeleteWatchResponse.fromXContent(parser);
     }
 
-    @Override
-    protected boolean supportsUnknownFields() {
-        return false;
+    public void testParse() throws IOException {
+        DeleteWatchResponse expected = createTestInstance();
+
+        XContentBuilder builder = jsonBuilder();
+        builder.startObject()
+            .field("_id", expected.getId())
+            .field("_version", expected.getVersion())
+            .field("found", expected.isFound())
+            .endObject();
+        XContentParser parser = createParser(builder);
+
+        DeleteWatchResponse actual = doParseInstance(parser);
+
+        assertThat(expected, equalTo(actual));
     }
 }
