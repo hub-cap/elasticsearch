@@ -26,4 +26,6 @@ dependencies {
     compileOnly "org.elasticsearch:elasticsearch:${version}"
 
     testCompile "org.elasticsearch.test:framework:${version}"
+    testCompile "org.elasticsearch:elasticsearch:${version}"
+    testCompile project(path: xpackModule('core'))
 }
