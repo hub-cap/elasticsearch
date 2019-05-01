@@ -7,12 +7,12 @@ package org.elasticsearch.xpack.enrich;
 
 import org.elasticsearch.action.ActionRequest;
 import org.elasticsearch.action.ActionResponse;
-import org.elasticsearch.cluster.ClusterState;
 import org.elasticsearch.client.Client;
+import org.elasticsearch.cluster.ClusterState;
 import org.elasticsearch.cluster.metadata.IndexNameExpressionResolver;
 import org.elasticsearch.cluster.metadata.MetaData;
-import org.elasticsearch.cluster.service.ClusterService;
 import org.elasticsearch.cluster.node.DiscoveryNodes;
+import org.elasticsearch.cluster.service.ClusterService;
 import org.elasticsearch.common.ParseField;
 import org.elasticsearch.common.io.stream.NamedWriteableRegistry;
 import org.elasticsearch.common.settings.ClusterSettings;
@@ -31,10 +31,13 @@ import org.elasticsearch.rest.RestHandler;
 import org.elasticsearch.script.ScriptService;
 import org.elasticsearch.threadpool.ThreadPool;
 import org.elasticsearch.watcher.ResourceWatcherService;
+import org.elasticsearch.xpack.core.enrich.action.ExecuteEnrichPolicyAction;
 import org.elasticsearch.xpack.core.enrich.action.ListEnrichPolicyAction;
 import org.elasticsearch.xpack.core.enrich.action.PutEnrichPolicyAction;
+import org.elasticsearch.xpack.enrich.action.TransportExecuteEnrichPolicyAction;
 import org.elasticsearch.xpack.enrich.action.TransportListEnrichPolicyAction;
 import org.elasticsearch.xpack.enrich.action.TransportPutEnrichPolicyAction;
+import org.elasticsearch.xpack.enrich.rest.RestExecuteEnrichPolicyAction;
 import org.elasticsearch.xpack.enrich.rest.RestListEnrichPolicyAction;
 import org.elasticsearch.xpack.enrich.rest.RestPutEnrichPolicyAction;
 
@@ -78,7 +81,8 @@ public class EnrichPlugin extends Plugin implements ActionPlugin, IngestPlugin {
 
         return Arrays.asList(
             new ActionHandler<>(ListEnrichPolicyAction.INSTANCE, TransportListEnrichPolicyAction.class),
-            new ActionHandler<>(PutEnrichPolicyAction.INSTANCE, TransportPutEnrichPolicyAction.class)
+            new ActionHandler<>(PutEnrichPolicyAction.INSTANCE, TransportPutEnrichPolicyAction.class),
+            new ActionHandler<>(ExecuteEnrichPolicyAction.INSTANCE, TransportExecuteEnrichPolicyAction.class)
         );
     }
 
@@ -92,7 +96,8 @@ public class EnrichPlugin extends Plugin implements ActionPlugin, IngestPlugin {
 
         return Arrays.asList(
             new RestListEnrichPolicyAction(settings, restController),
-            new RestPutEnrichPolicyAction(settings, restController)
+            new RestPutEnrichPolicyAction(settings, restController),
+            new RestExecuteEnrichPolicyAction(settings, restController)
         );
     }
 
